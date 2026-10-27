@@ -9,6 +9,8 @@ import sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 REPO = os.path.abspath(os.path.join(HERE, "..", ".."))
 NAME = "Fig4_reallocation"
+CODE_DIRS = ["common", "measurement", "sensitivity", "temporal", "models", "reallocation",
+             "supplementary_tables", "figures/plotting"]
 
 
 def out_name(folder):
@@ -22,12 +24,21 @@ def out_name(folder):
 def main():
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--out", default=HERE)
+    ap.add_argument("--data", default=os.path.join(REPO, "data", "figures"))
+    ap.add_argument("--pipeline", action="store_true")
     a = ap.parse_args()
+    if not a.pipeline:
+        d = os.path.abspath(a.data)
+        os.environ["TROPICS_INTERIM"] = os.path.join(d, "interim")
+        os.environ["TROPICS_TABLES"] = os.path.join(d, "tables")
+        os.environ["TROPICS_RAW"] = os.path.join(d, "raw")
+        os.environ["TROPICS_NE"] = os.path.join(d, "naturalearth", "ne_10m_admin_0_countries.shp")
+        os.environ["TROPICS_GISD30"] = os.path.join(d, "gisd30")
     out = os.path.abspath(a.out)
     os.makedirs(out, exist_ok=True)
     os.environ["TROPICS_FIG_DIR"] = out
     os.environ.setdefault("MPLBACKEND", "Agg")
-    sys.path.insert(0, os.path.join(REPO, "analysis"))
+    sys.path[:0] = [os.path.join(REPO, *d.split("/")) for d in CODE_DIRS]
     import fig_concentration as fc
     name = out_name(out)
     print(fc.figure(name))

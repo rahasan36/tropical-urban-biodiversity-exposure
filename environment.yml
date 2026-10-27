@@ -1,4 +1,4 @@
-name: tropical-urban-biodiversity
+name: tropical-urban-biodiversity-exposure
 channels:
   - conda-forge
 dependencies:

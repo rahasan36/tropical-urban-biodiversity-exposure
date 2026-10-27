@@ -11,7 +11,9 @@ desktop.ini
 ~$*
 figures/*/*.svg
 figures/*/*_r[0-9]*.*
-data/
+data/*
+!data/figures/
+data/figures/interim/basemap_*.pkl
 outputs/
 manuscript/
 scratch/
