@@ -1,0 +1,26 @@
+cff-version: 1.2.0
+message: "If you use this code, please cite it as below."
+title: "Code for: A third of the world's threatened land vertebrates exposed to tropical urbanization"
+type: software
+authors:
+  - family-names: Ahasan
+    given-names: Rakibul
+    affiliation: "Esri, Redlands, CA, USA"
+    orcid: "https://orcid.org/0000-0003-4772-8499"
+  - family-names: Güneralp
+    given-names: Burak
+    affiliation: "Department of Geography, Texas A&M University, College Station, TX, USA"
+    orcid: "https://orcid.org/0000-0002-5825-0630"
+  - family-names: Chowdhury
+    given-names: Shawan
+    affiliation: "School of Biological Sciences, Monash University, Melbourne, VIC, Australia"
+repository-code: "https://github.com/rahasan36/tropical-urban-biodiversity"
+license: CC-BY-NC-ND-4.0
+keywords:
+  - urban expansion
+  - tropics
+  - biodiversity
+  - threatened species
+  - range-restricted species
+  - impervious surface
+  - urban agglomerations
