@@ -14,7 +14,7 @@ Code and figure data for a pan-tropical assessment of how urban expansion betwee
 | temporal | Five-year periods. tropics_temporal.py (urban land at 2000, 2005, 2010, 2015 and 2020 and the range each period converted), temporal_analysis.py, temporal_size.py, temporal_subregion.py and temporal_species.py (period totals, size distribution, species accrual by period and by sub-region), recency_numbers.py (timing of the impervious surface and its relation to rarity-weighted exposure), temporal_verify.py (checks). |
 | models | Scaling models and statistics. tropics_scaling.py (estimation of the size exponent and the spatial diagnostic), tropics_numbers.py, tropics_refit.py, tropics_analysis.py, tropics_models.py and tropics_sizevars.py (primary specification, response definitions, quantile regression, variance decomposition, alternative measures of size), tropics_cluster.py (typology of agglomerations), r2_components.py (marginal and conditional R²), spatial_cv_blocks.py, spatial_cv_run.py and validate_setting.py (buffered spatial block cross-validation), drivers.py, species_ledger.py, species_concentration.py, region_overlap.py and region_search.py. |
 | reallocation | Reallocation of growth within countries. tropics_counterfactual.py and tropics_cfrobust.py (allocation of each country's added land by the power of year 2000 extent), cf_release.py, cf_run.py, cf_bands.py, cf_influence.py, cf_boundary_check.py and cf_fix.py (country bootstrap, response and realm bands, leave-one-country-out influence). |
-| supplementary_tables | The Supplementary Tables. tropics_sitables.py, si_print.py, si_tables_two_part.py and table_s5_quantiles.py. |
+| supplementary_tables | The Supplementary Tables and Supplementary Data. tropics_sitables.py, si_print.py, si_tables_two_part.py and table_s5_quantiles.py (the printed tables), supplementary_data.py (Supplementary Data 1 to 4). |
 | figures | The script and the figure of each figure of the paper and its Supplementary Information (see Figures). figures/plotting holds the plotting code the scripts share. |
 
 run_pipeline.py runs the stages in order, from the source products to the Supplementary Tables, the figures and the checks. From the repository folder,
@@ -28,7 +28,7 @@ run_pipeline.py runs the stages in order, from the source products to the Supple
 
 or `python run_pipeline.py all` for every stage. One module runs on its own with `python run_pipeline.py module <name> [arguments]`, for example `python run_pipeline.py module temporal_species`. The measurement and temporal stages read the full range files and the 30 m rasters of the tropical band and run for many hours. The steps that take a time budget resume from their last completed tile or species when they are started again.
 
-The analysis writes its intermediate files to data/interim and data/processed, its results to outputs/tables and the Supplementary Tables to manuscript/tables, all inside the repository folder. TROPICS_PROJECT moves these folders elsewhere, and TROPICS_SCRATCH moves the temporary files of the measurement.
+The analysis writes its intermediate files to data/interim and data/processed, its results to outputs/tables, and the Supplementary Tables and Supplementary Data to manuscript/tables and manuscript/supplementary_data, all inside the repository folder. TROPICS_PROJECT moves these folders elsewhere, and TROPICS_SCRATCH moves the temporary files of the measurement.
 
 ## Figures
 
@@ -44,7 +44,7 @@ Each script writes the figure to its own folder, or to the folder given by --out
 | Figure 2 | Exposure intensity and its spread | Fig2_exposure_intensity/make_fig2_exposure_intensity.py | tables/cities_cost.csv, interim/city_form.csv, naturalearth |
 | Figure 3 | Exposure intensity by size, growth and setting | Fig3_size_growth_setting/make_fig3_size_growth_setting.py | tables/cities_cost.csv, tables/plan4.json, tables/setting_footprint_v3.csv, interim/city_form.csv |
 | Figure 4 | Reallocation of urban growth within countries | Fig4_reallocation/make_fig4_reallocation.py | tables/cities_cost.csv, tables/cf_release.json, tables/cf_robust.json, interim/city_form.csv |
-| Figure 5 | Range rarity, the size relationship and three regional windows | Fig5_range_rarity/make_fig5_range_rarity.py | tables/cities_cost.csv, tables/plan4.json, interim/city_form.csv, interim/species_city_pairs.npz, interim/sp_flags_merged.npz, interim/surfaces, naturalearth |
+| Figure 5 | Range rarity, the size relationship and three regional windows | Fig5_range_rarity/make_fig5_range_rarity.py | tables/cities_cost.csv, tables/plan4.json, tables/scaling_spatial.json, interim/city_form.csv, interim/species_city_pairs.npz, interim/sp_flags_merged.npz, interim/surfaces, naturalearth |
 | Figure 6 | Urban growth and accumulating range conversion, 2000 to 2020 | Fig6_temporal_accrual/make_fig6_temporal_accrual.py | tables/temporal |
 | Supplementary Fig. 1 | Delineated agglomerations | SFig01_agglomerations/make_sfig01_agglomerations.py | tables/cities_cost.csv, interim/city_form.csv, naturalearth |
 | Supplementary Fig. 2 | Agglomerations matched on 2000 size and contrasted in exposure | SFig02_matched_pairs/make_sfig02_matched_pairs.py | tables/cities_cost.csv, tables/plan4.json, tables/setting_footprint_v3.csv, interim/city_form.csv, interim/city_id_30arcsec.npz, interim/city_measurements.npz, raw/tropical_places.csv, gisd30 |
@@ -69,6 +69,7 @@ The same list is in figures/figure_scripts.csv. The maps are drawn in the Robins
 | tables/cities_cost.csv | One row per agglomeration: location, country, realm and biome, impervious extent in 2000 and 2020, land added, range converted for all species of concern, threatened and narrow-range species, rarity-weighted conversion, exposure intensity and setting richness | measurement/tropics_assemble.py, measurement/tropics_results.py |
 | tables/setting_footprint_v3.csv | Setting covariate of each agglomeration, the threatened species within 50 km of the year 2000 footprint | measurement/setting_rebuild.py |
 | tables/plan4.json | Fitted models of the primary specification and its alternatives | models/tropics_models.py |
+| tables/scaling_spatial.json | The size exponent and its interval in the primary specification | models/tropics_numbers.py |
 | tables/cf_release.json, tables/cf_robust.json | Reallocation curves and their bootstrap, response and realm bands | reallocation/cf_release.py, cf_run.py, cf_bands.py |
 | tables/narrow_two_part_B.csv, tables/narrow_two_part_contrasts_B.json | Two-part model of narrow-range conversion | models/species_concentration.py |
 | tables/species_concentration.csv, tables/species_concentration_strata.json | Concentration of each species' converted range across agglomerations | models/species_concentration.py |
@@ -82,6 +83,17 @@ The same list is in figures/figure_scripts.csv. The maps are drawn in the Robins
 | raw/tropical_places.csv | Names, population and location of the populated places of the tropical band, from Natural Earth | measurement/place_names.py |
 | gisd30 | GISD30 extracts around the six agglomerations of Supplementary Fig. 2, under the tile names of the product | Extracted from GISD30 |
 | naturalearth | Natural Earth 1:10m admin-0 countries, version 5.1.1. The scripts write base-map caches beside the files in data/figures/interim on the first run. | Natural Earth |
+
+## Supplementary Data
+
+The folder data/supplementary_data holds the Supplementary Data of the paper, written by supplementary_tables/supplementary_data.py from the outputs of the analysis.
+
+| File | Contents |
+|---|---|
+| Supplementary_Data_1.csv | The per-agglomeration analysis table, one row per agglomeration (7,229 rows). Supplementary_Data_1_columns.csv defines each column. |
+| Supplementary_Data_2.zip | Supplementary Tables S1 to S18 at full precision, one file per table under its printed number. |
+| Supplementary_Data_3.csv | Per-species comparison of the bird range measurement, with the number of range features, the area of their union, the summed area of the features, the relative excess of the summed area over the union and the converted range. |
+| Supplementary_Data_4.zip | The tables of the temporal evaluation: totals by five-year period, agglomerations at each epoch, the agglomeration-by-period table, exposure by class and period, the size distribution through time, and species reached and change in intensity by sub-region. |
 
 ## Source data
 

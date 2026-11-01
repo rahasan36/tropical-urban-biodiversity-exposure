@@ -66,7 +66,7 @@ def read(stem):
 
 DOC_NUMBER = {1: 1, 14: 2, 2: 3, 10: None, 9: 4, 3: 5, 6: 6, 7: None, 13: None,
               8: None, 12: None, 15: 7, 19: 8, 17: 11, 18: None, 4: 12, 11: 13,
-              5: 14}
+              5: 15}
 
 
 def write(num, df):
@@ -200,17 +200,21 @@ S6_COLS = {"block": "Block", "setting_from": "Setting measured on",
 
 def s6():
     d = read("tableS5")
-    out = pd.DataFrame({
-        "Block": d.block, "Setting measured on": d.setting_from,
-        "Predicting": d.exposure_of,
-        "n": [n0(v) for v in d.n],
-        "Statistic": [f(v, 3, sign=True) for v in d.statistic],
-        "SE": [f(v, 3) if not pd.isna(v) else "" for v in d.se],
-        "P": [pval(v) for v in d.p_value],
-        "Size exponent": [f(v, 4, sign=True) if not pd.isna(v) else ""
-                          for v in d.beta_size],
-    })
-    return write(6, out)
+    cor = d[d.block == "rank correlation between settings"]
+    pred = d[d.block == "setting predicts the excluded groups"]
+    groups = ["birds", "mammals", "herps"]
+    rho = {}
+    for r in cor.itertuples():
+        rho[(r.setting_from, r.exposure_of)] = rho[(r.exposure_of, r.setting_from)] = r.statistic
+    rows = []
+    for r in pred.itertuples():
+        row = {"Setting measured on": r.setting_from, "Predicting": r.exposure_of}
+        for g in groups:
+            row[f"Spearman with {g}"] = "" if g == r.setting_from else f(rho[(r.setting_from, g)], 3, sign=True)
+        row.update({"Setting coefficient": f(r.statistic, 3, sign=True), "SE": f(r.se, 3),
+                    "P": pval(r.p_value), "Size exponent": f(r.beta_size, 4, sign=True)})
+        rows.append(row)
+    return write(6, pd.DataFrame(rows))
 
 
 def s7():
@@ -277,21 +281,26 @@ def s10():
     return write(10, out)
 
 
+NOTE_TEXT = {"Taxa the study does not analyse; empty in the current configuration":
+             "Taxa the study does not analyze, none in the current configuration",
+             "Species with a non-zero converted area; the rest are in the pool through the setting covariate only":
+             "Species with a non-zero converted area. The rest are in the pool through the setting covariate only"}
+
+
 def s11():
     d = read("tableS11")
     led = d[d.block == "ledger"]
     comp = d[d.block == "composition"]
-    rows = [{"Block": "ledger", "Item": r.step, "n removed": n0(r.n_removed),
-             "n remaining": n0(r.n_remaining), "Threatened": "",
-             "Narrow range": "", "Median range (km²)": "", "Note": r.note}
-            for r in led.itertuples()]
-    rows += [{"Block": "composition", "Item": r.taxon.capitalize(),
-              "n removed": "", "n remaining": n0(r.n),
-              "Threatened": n0(r.threatened),
-              "Narrow range": n0(r.narrow_range),
-              "Median range (km²)": n0(r.median_range_km2), "Note": ""}
-             for r in comp.itertuples()]
-    return write(11, pd.DataFrame(rows))
+    a = pd.DataFrame({"Step": led.step, "Removed": [n0(v) for v in led.n_removed],
+                      "Remaining": [n0(v) for v in led.n_remaining],
+                      "Note": [NOTE_TEXT.get(v, v) for v in led.note]})
+    b = pd.DataFrame({"Class": [str(v).capitalize() for v in comp.taxon],
+                      "Species": [n0(v) for v in comp.n],
+                      "Threatened": [n0(v) for v in comp.threatened],
+                      "Narrow range": [n0(v) for v in comp.narrow_range],
+                      "Median global range (km²)": [n0(v) for v in comp.median_range_km2]})
+    write("13", a)
+    return write("14", b)
 
 
 def s12():
@@ -348,18 +357,14 @@ def s14():
         "P": [pval(v) for v in fit.p],
     })
     write(14, a)
-    OUT.mkdir(parents=True, exist_ok=True)
-    _n = DOC_NUMBER[14]
-    b.to_csv(OUT / f"tableS{_n}b.csv", index=False)
-    print(f"S{_n}b {b.shape[0]:>3} rows x {b.shape[1]} cols  -> tableS{_n}b.csv",
-          flush=True)
+    write("16", b)
     return a
 
 
 def s15():
     d = read("tableS15")
     out = pd.DataFrame({
-        "Block": d.block,
+        "Grouping": d.block.map({"responses": "species subset", "regions": "region"}).fillna(d.block),
         "Subset": d.subset,
         "n": [n0(v) for v in d.n],
         "Unweighted exponent": [f(v, 4, sign=True) for v in d.beta_unweighted],
@@ -372,22 +377,6 @@ def s15():
 
 
 def s16():
-    src = SRC.parent / "delineation_reconciliation_pipelines.csv"
-    if src.exists():
-        r = pd.read_csv(src)
-        b = pd.DataFrame({
-            "Quantity": r.quantity,
-            "Main pipeline": [n0(v) if abs(v) > 100 else f(v, 3)
-                              for v in r.main_pipeline],
-            "Sensitivity pipeline": [n0(v) if abs(v) > 100 else f(v, 3)
-                                     for v in r.sensitivity_headline],
-            "Relative difference": [pct(v, 2) for v in r.relative_difference],
-        })
-        OUT.mkdir(parents=True, exist_ok=True)
-        _n = DOC_NUMBER[16]
-        b.to_csv(OUT / f"tableS{_n}b.csv", index=False)
-        print(f"S{_n}b {b.shape[0]:>3} rows x {b.shape[1]} cols  -> tableS{_n}b.csv",
-              flush=True)
     d = read("tableS16")
     out = pd.DataFrame({
         "Configuration": d.label,

@@ -1,0 +1,30 @@
+column,definition
+city_id,Agglomeration identifier
+lon,Longitude of the agglomeration centroid (degrees)
+lat,Latitude of the agglomeration centroid (degrees)
+country,ISO 3166-1 alpha-3 code of the country holding the centroid (Natural Earth ADM0_A3)
+continent,Continent of that country (Natural Earth)
+biome,Biome of the ecoregion holding the centroid (RESOLVE Ecoregions 2017)
+realm,Biogeographic realm of that ecoregion (RESOLVE Ecoregions 2017)
+n_cells,Number of 30 arcsecond lattice cells in the 2020 footprint
+urban_km2_base,Impervious area in 2000 (km2)
+urban_km2_final,Impervious area in 2020 (km2)
+urban_added_km2,Impervious area added between 2000 and 2020 (km2)
+cost_km2,"Mapped range converted, summed over the species of concern (km2)"
+cost_threat_km2,"Mapped range converted, summed over threatened species (km2)"
+cost_narrow_km2,"Mapped range converted, summed over narrow-range species (km2)"
+cost_all_km2,"Mapped range converted, summed over every species of the analysis pool (km2)"
+rarity_converted,"Converted range of the species of concern, each divided by the species' global range"
+n_threat_affected,Threatened species with mapped range converted
+n_narrow_affected,Narrow-range species with mapped range converted
+cost_per_km2,"Exposure intensity, cost_km2 divided by urban_added_km2 (km2 of range per km2 added)"
+rarity_per_km2,"Rarity-weighted exposure intensity, rarity_converted divided by urban_added_km2 (km-2)"
+setting_footprint,"Setting richness, threatened species whose mapped range comes within 50 km of the 2000 footprint"
+setting_richness,Threatened species whose mapped range comes within 50 km of the 2020 footprint
+setting_richness_all,Species of the analysis pool whose mapped range comes within 50 km of the 2020 footprint
+form_infill_km2,Impervious area added by infill (km2)
+form_edge_km2,Impervious area added by edge expansion (km2)
+form_leapfrog_km2,Impervious area added by leapfrog development (km2)
+form_infill_share,Share of the added area added by infill
+form_edge_share,Share of the added area added by edge expansion
+form_leapfrog_share,Share of the added area added by leapfrog development

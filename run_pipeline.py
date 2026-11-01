@@ -98,6 +98,7 @@ TABLES = [
     ("si_print", []),
     ("si_tables_two_part", []),
     ("table_s5_quantiles", []),
+    ("supplementary_data", []),
 ]
 
 VERIFY = [
