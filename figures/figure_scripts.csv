@@ -1,20 +1,15 @@
 figure,content,script
-Figure 1,"Tropical urban expansion, 2000 to 2020",Fig1_urban_expansion/make_fig1_urban_expansion.py
-Figure 2,Exposure intensity and its spread,Fig2_exposure_intensity/make_fig2_exposure_intensity.py
-Figure 3,"Exposure intensity by size, growth and setting",Fig3_size_growth_setting/make_fig3_size_growth_setting.py
-Figure 4,Reallocation of urban growth within countries,Fig4_reallocation/make_fig4_reallocation.py
-Figure 5,"Range rarity, the size relationship and three regional windows",Fig5_range_rarity/make_fig5_range_rarity.py
-Figure 6,"Urban growth and accumulating range conversion, 2000 to 2020",Fig6_temporal_accrual/make_fig6_temporal_accrual.py
-Supplementary Fig. 1,Delineated agglomerations,SFig01_agglomerations/make_sfig01_agglomerations.py
-Supplementary Fig. 2,Agglomerations matched on 2000 size and contrasted in exposure,SFig02_matched_pairs/make_sfig02_matched_pairs.py
-Supplementary Fig. 3,Occurrence and intensity of narrow-range conversion against agglomeration size,SFig03_two_part/make_sfig03_two_part.py
-Supplementary Fig. 4,Concentration of a species' converted range across agglomerations,SFig04_species_concentration/make_sfig04_species_concentration.py
-Supplementary Fig. 5,Threatened species reached by taxon and Red List category,SFig05_threatened_taxa/make_sfig05_threatened_taxa.py
-Supplementary Fig. 6,Range-restricted species and new impervious surface in four regions,SFig06_narrow_range_regions/make_sfig06_narrow_range_regions.py
-Supplementary Fig. 7,Impervious surface by 2000 against surface added since,SFig07_surface_by_period/make_sfig07_surface_by_period.py
-Supplementary Fig. 8,The 2020 impervious surface split by period,SFig08_surface_split/make_sfig08_surface_split.py
-Supplementary Fig. 9,When the agglomerated surface was added,SFig09_surface_timing/make_sfig09_surface_timing.py
-Supplementary Fig. 10,The size distribution of agglomerations through time,SFig10_size_distribution/make_sfig10_size_distribution.py
-Supplementary Fig. 11,Agglomeration size and the period in which its surface was added,SFig11_size_and_period/make_sfig11_size_and_period.py
-Supplementary Fig. 12,Exposure intensity by country and by when an agglomeration formed,SFig12_country_intensity/make_sfig12_country_intensity.py
-Supplementary Fig. 13,Recency of urban surface and the rarity of the ranges it converts,SFig13_recency_rarity/make_sfig13_recency_rarity.py
+Figure 1,"Threatened land vertebrates reached by tropical urban expansion, 2000 to 2020",Fig1_species_reached/make_fig1_species_reached.py
+Figure 2,"Exposure intensity by size, growth and setting",Fig2_size_growth_setting/make_fig2_size_growth_setting.py
+Figure 3,Reallocating the same urban land among agglomerations,Fig3_reallocation/make_fig3_reallocation.py
+Figure 4,"Urban growth and accumulating range conversion, 2000 to 2020",Fig4_temporal_accrual/make_fig4_temporal_accrual.py
+Extended Data Fig. 1,Delineated agglomerations and their size distribution through time,EDFig1_agglomerations/make_edfig1_agglomerations.py
+Extended Data Fig. 2,"Tropical urban expansion, 2000 to 2020",EDFig2_urban_expansion/make_edfig2_urban_expansion.py
+Extended Data Fig. 3,"Threatened species reached by taxon, Red List category and boundary rule",EDFig3_threatened_taxa/make_edfig3_threatened_taxa.py
+Extended Data Fig. 4,Concentration of a species' converted range across agglomerations,EDFig4_species_concentration/make_edfig4_species_concentration.py
+Extended Data Fig. 5,"Exposure intensity, its spread and its prediction in held-out regions",EDFig5_exposure_intensity/make_edfig5_exposure_intensity.py
+Extended Data Fig. 6,"Rarity-weighted exposure, its decomposition and narrow-range species in five regions",EDFig6_range_rarity/make_edfig6_range_rarity.py
+Extended Data Fig. 7,Occurrence and intensity of narrow-range conversion against agglomeration size,EDFig7_two_part/make_edfig7_two_part.py
+Extended Data Fig. 8,"Exposure intensity by country, by when an agglomeration formed and by the recency of its surface",EDFig8_country_recency/make_edfig8_country_recency.py
+Extended Data Table 1,Primary estimates of the size exponent and setting coefficient,EDTable1_primary_estimates/make_edtable1_primary_estimates.py
+Extended Data Table 2,Robustness of the size exponent and setting coefficient,EDTable2_robustness/make_edtable2_robustness.py

@@ -1,4 +1,4 @@
-"""A third of the world's threatened land vertebrates exposed to tropical urbanization
+"""The geography of threatened species exposure to tropical urban growth
 
 Author: Rakibul Ahasan
 """
@@ -43,6 +43,12 @@ def _load(k):
     return cells, cities
 
 
+def species_order(parts):
+    part_sp, part_off, part_len = parts
+    o = np.argsort(part_sp, kind="stable")
+    return part_sp[o], part_off[o], part_len[o]
+
+
 def _species_bounds(part_sp, start, target=1200):
     end = min(start + target, part_sp.size)
     while end < part_sp.size and part_sp[end] == part_sp[end - 1]:
@@ -56,7 +62,7 @@ def step(k, budget_s=150.0, target=1200):
     d = _dir(k)
     cells, cities = _load(k)
     sp, part_sp_all = rc.load_index()
-    part_sp, part_off, part_len = part_sp_all
+    part_sp, part_off, part_len = species_order(part_sp_all)
     n_parts = int(part_sp.size)
     state = json.loads((d / "state.json").read_text()) if (d / "state.json").exists() \
         else dict(next=0, n_parts=n_parts)
@@ -65,6 +71,7 @@ def step(k, budget_s=150.0, target=1200):
 
     lon, lat = cells.lon.to_numpy(), cells.lat.to_numpy()
     tree = STRtree(shapely.points(lon, lat))
+    tree_pt = STRtree(shapely.points(cities.lon.to_numpy(), cities.lat.to_numpy()))
     cell_city = cells.city_id.to_numpy()
     cell_conv = cells.conv.to_numpy()
     base_flag = cells.base.to_numpy() > 0
@@ -74,7 +81,7 @@ def step(k, budget_s=150.0, target=1200):
     while state["next"] < n_parts and time.time() - t0 < budget_s:
         a = state["next"]
         b = _species_bounds(part_sp, a, target)
-        hits, near = {}, {}
+        hits, near, pool = {}, {}, set()
         for sp_batch, geom_batch in rc.iter_parts(
                 (part_sp[a:b], part_off[a:b], part_len[a:b]), batch=400):
             for i, g in zip(sp_batch, geom_batch):
@@ -84,6 +91,9 @@ def step(k, budget_s=150.0, target=1200):
                 ix = tree.query(g, predicate="intersects")
                 if ix.size:
                     hits.setdefault(i, []).append(ix.astype(np.int32))
+                if i not in pool and tree_pt.query(
+                        g, predicate="dwithin", distance=buf).size:
+                    pool.add(i)
                 nr = tree.query(g, predicate="dwithin", distance=buf)
                 if nr.size:
                     nr = nr[base_flag[nr]]
@@ -109,7 +119,8 @@ def step(k, budget_s=150.0, target=1200):
         np.savez(d / f"chunk_{a:07d}.npz",
                  pair_sp=cat(ps, np.int32), pair_city=cat(pc, np.int32),
                  pair_conv=cat(pv, np.float64),
-                 set_sp=cat(ss, np.int32), set_city=cat(sc, np.int32))
+                 set_sp=cat(ss, np.int32), set_city=cat(sc, np.int32),
+                 pool_sp=np.asarray(sorted(pool), np.int32))
         state["next"] = int(b)
         (d / "state.json").write_text(json.dumps(state))
         print(f"cfg{k}  parts {b:,}/{n_parts:,}  "
@@ -120,16 +131,18 @@ def step(k, budget_s=150.0, target=1200):
 def finish(k):
     d = _dir(k)
     cells, cities = _load(k)
-    P, S = [], []
+    P, S, Q = [], [], []
     for f in sorted(d.glob("chunk_*.npz")):
         z = np.load(f)
+        Q.append(z["pool_sp"])
         P.append(pd.DataFrame(dict(sp_i=z["pair_sp"], city_id=z["pair_city"],
                                    conv_km2=z["pair_conv"])))
         S.append(pd.DataFrame(dict(sp_i=z["set_sp"], city_id=z["set_city"])))
     pairs = pd.concat(P, ignore_index=True)
     setting = pd.concat(S, ignore_index=True).drop_duplicates()
     sp, _ = rc.load_index()
-    t, thr, _own = sv.assemble(cities, sp, pairs, setting)
+    pool = np.union1d(np.concatenate(Q), pairs.sp_i.unique())
+    t, thr, _own = sv.assemble(cities, sp, pairs, setting, pool=pool)
     t = sv.attach_groups(t)
     r = ts.fit_scaling(t, response="cost_per_km2", size="urban_km2_base",
                        setting="setting_richness", spatial=True)

@@ -1,4 +1,4 @@
-"""A third of the world's threatened land vertebrates exposed to tropical urbanization
+"""The geography of threatened species exposure to tropical urban growth
 
 Author: Rakibul Ahasan
 """
@@ -10,13 +10,14 @@ from matplotlib.colors import to_rgb
 import tropics_style as st
 import tropics_panels as tp
 import tropics_robinson as rb
+import tropics_frame as tf
 import tropics_temporal as t
 from tropics_urban import MOSAIC_ROWS, MOSAIC_COLS, CELLS_PER_DELIN
 from tropics_config import MOSAIC_LAT_TOP, DELIN_DEG
 from tropics_grid import cell_area_km2
 import fig_bivariate as fb
 
-PRIM = ["#3F86D1", "#E9B500", "#D63A6E"]
+PRIM = ["#3F86D1", "#E69F00", "#D63A6E"]
 PLAB = ["By 2000", "Added 2000–2010", "Added 2010–2020"]
 WIN4 = [("São Paulo and Rio", -48.0, -42.8, -24.1, -20.4),
         ("Lagos and Ibadan", 1.6, 5.6, 5.9, 8.9),
@@ -153,10 +154,10 @@ def figure(name="figure_trivariate_v9", lat_view=38.0, s_main=2.4e5, s_zoom=0.05
     xpad = rb.X_MAX * 0.012
     asp = (2 * yv * 1.01) / (2 * rb.X_MAX + 2 * xpad)
     map_h = W * asp
-    gap = 0.05
-    zw = (W - 0.06 - 3 * gap) / 4
+    gap, zl, zb = 0.17, 0.17, 0.18
+    zw = (W - zl - 0.03 - 3 * gap) / 4
     zh = zw * 0.80
-    H = map_h + 0.22 + zh + 0.06
+    H = map_h + 0.36 + zh + zb
     fig = plt.figure(figsize=(W, H))
     ax = fig.add_axes([0, 1 - map_h / H, 1, map_h / H])
     rb.draw_globe(ax, zorder=0, top_face="white")
@@ -176,6 +177,9 @@ def figure(name="figure_trivariate_v9", lat_view=38.0, s_main=2.4e5, s_zoom=0.05
     ax.set_aspect("equal"); ax.set_xticks([]); ax.set_yticks([])
     for sp in ax.spines.values():
         sp.set_visible(False)
+    tf.robinson_degree_labels(ax, lat_side="right", lat_inside=True, x_margin=0.06)
+    for t_ in ax.texts:
+        t_.set_clip_on(False)
     for la in (rb.TROPIC, -rb.TROPIC):
         ll = np.linspace(rb.LON_LO + 1e-6, rb.LON_HI - 1e-6, 240)
         xx, yy = rb.project(ll, np.full_like(ll, la))
@@ -195,7 +199,7 @@ def figure(name="figure_trivariate_v9", lat_view=38.0, s_main=2.4e5, s_zoom=0.05
     wdt = kx1[0] - kx0[0]
     tri_key(ax, [kx0[0], ky0[0], wdt, wdt * 0.92], center)
     tx, ty = rb.project([-143.0], [11.0])
-    ax.text(tx[0], ty[0], "Share of 2020\nimpervious surface", fontsize=6, fontweight="bold",
+    ax.text(tx[0], ty[0], "Share of 2020\nimpervious surface", fontsize=6, fontweight="normal",
             ha="left", va="bottom", zorder=7, linespacing=1.05)
     sx, sy = rb.project([-42.0], [-33.5])
     vals = (20, 200, int(round(cap, -2)))
@@ -210,8 +214,8 @@ def figure(name="figure_trivariate_v9", lat_view=38.0, s_main=2.4e5, s_zoom=0.05
 
     for i, w in enumerate(WIN4):
         name_, lo0, lo1, la0, la1 = w
-        zx = 0.03 + i * (zw + gap)
-        za = fig.add_axes([zx / W, 0.06 / H, zw / W, zh / H])
+        zx = zl + i * (zw + gap)
+        za = fig.add_axes([zx / W, zb / H, zw / W, zh / H])
         m = (lon >= lo0 - 0.5) & (lon <= lo1 + 0.5) & (lat >= la0 - 0.5) & (lat <= la1 + 0.5)
         sc = np.cos(np.deg2rad((la0 + la1) / 2))
         geoms, land = rb._load()
@@ -232,6 +236,7 @@ def figure(name="figure_trivariate_v9", lat_view=38.0, s_main=2.4e5, s_zoom=0.05
         za.set_facecolor("#F4F7FA")
         za.apply_aspect()
         x0z, x1z = za.get_xlim(); y0z, y1z = za.get_ylim()
+        tf.corner_labels(za, x0z / sc, x1z / sc, y0z, y1z)
         km = 50.0
         L = km / 111.32
         pos = {1: "center", 3: "left"}.get(i, "right")
@@ -256,7 +261,7 @@ def figure(name="figure_trivariate_v9", lat_view=38.0, s_main=2.4e5, s_zoom=0.05
                         arrowprops=dict(arrowstyle="-|>", color=st.INK, lw=0.8, mutation_scale=7),
                         zorder=9)
             za.text(nx, ny + 0.145, "N", transform=za.transAxes, ha="center", va="bottom",
-                    fontsize=6, fontweight="bold", color=st.INK, zorder=9)
+                    fontsize=6, fontweight="normal", color=st.INK, zorder=9)
         za.text(0.0, 1.03, "bcde"[i], transform=za.transAxes, fontsize=st.MIN_PT + 1,
                 fontweight="bold", va="bottom", ha="left")
         za.text(0.085, 1.03, name_, transform=za.transAxes, fontsize=st.MIN_PT, fontweight="bold",

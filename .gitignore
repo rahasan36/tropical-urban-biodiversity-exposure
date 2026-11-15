@@ -14,8 +14,10 @@ figures/*/*_r[0-9]*.*
 data/*
 !data/figures/
 !data/supplementary_data/
+!data/workbook/
 data/figures/interim/basemap_*.pkl
 outputs/
 manuscript/
 scratch/
 logs/
+_to_delete/

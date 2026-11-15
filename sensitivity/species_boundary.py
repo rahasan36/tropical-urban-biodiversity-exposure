@@ -1,4 +1,4 @@
-"""A third of the world's threatened land vertebrates exposed to tropical urbanization
+"""The geography of threatened species exposure to tropical urban growth
 
 Author: Rakibul Ahasan
 """
@@ -22,11 +22,9 @@ RULE_LABEL = {"centroid": "cell centre inside the range",
               "within": "cell wholly inside the range"}
 
 
-def published():
+def selected():
     w = sm.worst(n=20, cats=("CR", "EN", "VU"))
-    return w[["sp_id", "sci", "category", "converted_km2", "range_km2",
-              "share"]].rename(columns={"converted_km2": "converted_published",
-                                        "share": "share_published"})
+    return w[["sp_id", "sci", "category", "range_km2"]]
 
 
 def per_species(rule, budget_s=None, verbose=True, only_sp=None):
@@ -38,7 +36,7 @@ def per_species(rule, budget_s=None, verbose=True, only_sp=None):
 
 
 def run(verbose=True, full=False):
-    base = published()
+    base = selected()
     out = base.copy()
     only = None
     if not full:
@@ -67,7 +65,7 @@ def run(verbose=True, full=False):
     out["share_min"] = sh.min(axis=1)
     out["share_max"] = sh.max(axis=1)
     out["share_span_pp"] = (out.share_max - out.share_min) * 100.0
-    return out.sort_values("share_published", ascending=False).reset_index(drop=True)
+    return out.sort_values("share_centroid", ascending=False).reset_index(drop=True)
 
 
 def _selftest():
@@ -90,7 +88,7 @@ if __name__ == "__main__":
         OUT.parent.mkdir(parents=True, exist_ok=True)
         d.to_csv(OUT, index=False)
         pd.set_option("display.width", 220)
-        print(d[["sci", "category", "share_published", "share_within",
+        print(d[["sci", "category", "share_within",
                  "share_centroid", "share_touches", "share_span_pp"]]
               .to_string(index=False, float_format=lambda v: f"{v:.4f}"))
         print(f"\nwritten to {OUT}")

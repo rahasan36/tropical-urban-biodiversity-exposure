@@ -1,4 +1,4 @@
-"""A third of the world's threatened land vertebrates exposed to tropical urbanization
+"""The geography of threatened species exposure to tropical urban growth
 
 Author: Rakibul Ahasan
 """
@@ -55,7 +55,7 @@ def config_cities(fraction, link_cells, min_km2, cells=None):
 
 def cost_from_cache(cells, cities, sp=None, part_sp=None,
                     buffer_km=SETTING_BUFFER_KM, taxa=None,
-                    setting_on="footprint"):
+                    setting_on="footprint", with_pool=False):
     if sp is None:
         sp, part_sp = rc.load_index()
     keep_sp = (np.ones(len(sp), bool) if taxa is None
@@ -77,6 +77,8 @@ def cost_from_cache(cells, cities, sp=None, part_sp=None,
                                           cities.lat.to_numpy()))
         set_owner = city_ids
 
+    tree_pt = STRtree(shapely.points(cities.lon.to_numpy(), cities.lat.to_numpy()))
+    pool = set()
     hits = {}
     near_hits = {}
     for sp_batch, geom_batch in rc.iter_parts(part_sp):
@@ -87,6 +89,9 @@ def cost_from_cache(cells, cities, sp=None, part_sp=None,
             idx = tree_cell.query(g, predicate="intersects")
             if idx.size:
                 hits.setdefault(i, []).append(idx.astype(np.int32))
+            if with_pool and i not in pool and tree_pt.query(
+                    g, predicate="dwithin", distance=buf).size:
+                pool.add(i)
             near = tree_set.query(g, predicate="dwithin", distance=buf)
             if near.size:
                 if on_foot:
@@ -121,17 +126,21 @@ def cost_from_cache(cells, cities, sp=None, part_sp=None,
                               conv_km2=cat(pair_conv, np.float64)))
     setting = pd.DataFrame(dict(sp_i=cat(set_sp, np.int32),
                                 city_id=cat(set_city, np.int32))).drop_duplicates()
+    if with_pool:
+        pool = np.asarray(sorted(pool | set(pairs.sp_i.unique())), np.int32)
+        return sp, pairs, setting, pool
     return sp, pairs, setting
 
 
-def assemble(cities, sp, pairs, setting, threshold=None):
+def assemble(cities, sp, pairs, setting, threshold=None, pool=None):
     import tropics_assemble as ta
     s = ta.merged_categories(sp.copy())
     keep = ~s["taxon"].astype(str).str.upper().isin(
         [t.upper() for t in EXCLUDED_TAXA])
     s["is_threat"] = s.category.isin(THREAT_CATS) & keep
-    pool = set(pairs.sp_i.unique()) | set(setting.sp_i.unique())
-    inpool = s.sp_i.isin(pool) & (s.range_km2 > 0) & keep
+    if pool is None:
+        pool = set(pairs.sp_i.unique()) | set(setting.sp_i.unique())
+    inpool = s.sp_i.isin(set(int(v) for v in pool)) & (s.range_km2 > 0) & keep
     own = float(np.percentile(s.loc[inpool, "range_km2"], NARROW_RANGE_PCTL))
     thr = own if threshold is None else float(threshold)
     s["is_narrow"] = inpool & (s.range_km2 <= thr)

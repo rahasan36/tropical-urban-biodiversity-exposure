@@ -1,4 +1,4 @@
-"""A third of the world's threatened land vertebrates exposed to tropical urbanization
+"""The geography of threatened species exposure to tropical urban growth
 
 Author: Rakibul Ahasan
 """
@@ -13,6 +13,7 @@ from shapely.affinity import translate
 import tropics_style as st
 import tropics_panels as tp
 import tropics_robinson as rb
+import tropics_frame as tf
 
 BREAKS = [0, 8, 10, 12, 15, 18, 22, 26, 1e9]
 BLAB = ["<8", "8–10", "10–12", "12–15", "15–18", "18–22", "22–26", "≥26"]
@@ -131,7 +132,7 @@ def half(ax, x, v, col, side):
 def panel_existing(axs, d):
     specs = [("cost_per_km2", "Species of concern", 1.0),
              ("narrow_per_km2", "Narrow-ranged", 1.0),
-             ("rarity_per_km2", "Rarity ×10⁴", 1e4)]
+             ("rarity_per_km2", "Rarity ×10$^4$", 1e4)]
     out = {}
     for ax, (col, lab, sc) in zip(axs, specs):
         for x, (flag, c) in enumerate(((True, "#5F7391"), (False, "#D9752D"))):
@@ -164,10 +165,11 @@ def figure(name="figure_country_violin_v3"):
     fig = plt.figure(figsize=(W, H))
     KW = 0.95
     map_h = (W - KW) * (2 * yv) / (x1 - x0)
-    H = map_h + 0.30 + low_h + 0.62
+    H = map_h + 0.44 + low_h + 0.62
     fig.set_size_inches(W, H)
     ax = fig.add_axes([KW / W, 1 - map_h / H, (W - KW) / W, map_h / H])
     c = panel_map(ax, d)
+    tf.robinson_degree_labels(ax, lat_side="right", lat_inside=True, lat_va="outward")
     kax = fig.add_axes([0.10 / W, 1 - map_h / H, (KW - 0.12) / W, map_h / H])
     kax.axis("off")
     key(kax, [0.0, 0.02, 1.0, 0.96])

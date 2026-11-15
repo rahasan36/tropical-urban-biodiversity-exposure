@@ -1,4 +1,4 @@
-"""A third of the world's threatened land vertebrates exposed to tropical urbanization
+"""The geography of threatened species exposure to tropical urban growth
 
 Author: Rakibul Ahasan
 """
@@ -33,33 +33,31 @@ def ledger():
     in_tropics[pair_sp] = True
 
     excluded_taxon = np.isin(tax, [t.upper() for t in EXCLUDED_TAXA])
-    no_area = ~(area > 0)
 
     rows = []
     remaining = np.ones(n_index, bool)
-
-    def drop(label, mask, note):
-        nonlocal remaining
-        m = remaining & mask
-        rows.append(dict(step=label, n_removed=int(m.sum()),
-                         n_remaining=int((remaining & ~m).sum()), note=note))
-        remaining = remaining & ~m
 
     rows.append(dict(step="Range polygons read from the two providers",
                      n_removed=0, n_remaining=n_index,
                      note="Species with at least one mapped range part in the "
                           "IUCN Red List spatial data or the BirdLife and HBW "
                           "distribution maps"))
-    drop("No mapped area after clipping to the tropical band", no_area,
-         "The range polygon exists but resolves to zero area on the 30 arcsec "
-         "lattice inside the study extent")
-    drop("Excluded higher taxon", excluded_taxon,
-         "Taxa the study does not analyse; empty in the current configuration")
-    drop("Range does not reach any delineated agglomeration or its setting",
-         ~in_tropics,
-         "The species has mapped tropical area but none of it falls in a city "
-         "setting or a converted cell, so it can enter neither the covariate "
-         "nor the response")
+    import tropics_rangecache as rc
+    n_band = int(len(rc.load_index()[0]))
+    outside = n_index - n_band
+    unreached = int((~in_tropics).sum()) - outside
+    assert outside >= 0 and unreached >= 0 and int(in_tropics.sum()) <= n_band
+    rows.append(dict(step="No range part in the tropical band or its 50 km margin",
+                     n_removed=outside, n_remaining=n_band,
+                     note="The mapped range lies wholly outside the tropical "
+                          "band and its 50 km margin"))
+    rows.append(dict(step="Range reaches no delineated agglomeration or its setting",
+                     n_removed=unreached, n_remaining=n_band - unreached,
+                     note="The species has mapped area in the band and none of "
+                          "it falls in a setting buffer or a converted cell, so "
+                          "it enters neither the covariate nor the response"))
+    remaining = remaining & in_tropics & ~excluded_taxon
+    assert int(remaining.sum()) == n_band - unreached
 
     pool = remaining
     rows.append(dict(step="Analysis pool", n_removed=0,
@@ -69,10 +67,10 @@ def ledger():
 
     conv = np.zeros(n_index, bool)
     conv[pair_sp] = True
-    rows.append(dict(step="Of the pool, range actually converted",
+    rows.append(dict(step="Of the pool, range converted",
                      n_removed=int((pool & ~conv).sum()),
                      n_remaining=int((pool & conv).sum()),
-                     note="Species with a non-zero converted area; the rest "
+                     note="Species with a non-zero converted area. The rest "
                           "are in the pool through the setting covariate only"))
 
     d = pd.DataFrame(rows)
@@ -98,7 +96,7 @@ def ledger():
 def _selftest():
     d, comp, s = ledger()
     start = int(d.iloc[0].n_remaining)
-    removed = int(d.n_removed[1:4].sum())
+    removed = int(d.n_removed[1:3].sum())
     assert start - removed == s["pool"], (start, removed, s["pool"])
     assert int(comp.n.sum()) == s["pool"]
     print("ok  ledger lines sum to the pool")

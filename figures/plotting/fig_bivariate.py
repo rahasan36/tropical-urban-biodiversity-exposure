@@ -1,4 +1,4 @@
-"""A third of the world's threatened land vertebrates exposed to tropical urbanization
+"""The geography of threatened species exposure to tropical urban growth
 
 Author: Rakibul Ahasan
 """
@@ -14,9 +14,9 @@ from tropics_urban import MOSAIC_ROWS, MOSAIC_COLS, CELLS_PER_DELIN
 from tropics_config import MOSAIC_LAT_TOP, DELIN_DEG
 from tropics_grid import cell_area_km2
 
-PAL = np.array([["#EDEDE8", "#BBD7EE", "#6FA6D8"],
-                ["#F9D35B", "#B8BC9A", "#8AA5BC"],
-                ["#EE7D1E", "#C27443", "#7E6866"]])
+PAL = np.array([["#EBEBEB", "#B5D2EA", "#56B4E9"],
+                ["#D9AEBE", "#A69ABE", "#4C83BD"],
+                ["#C51B7D", "#96117D", "#3F007D"]])
 WINDOWS = [("Gulf of Guinea", -3.5, 9.0, 4.0, 10.25),
            ("Java", 105.2, 115.2, -9.3, -4.3),
            ("Southeastern Brazil", -50.5, -40.0, -24.2, -19.0)]

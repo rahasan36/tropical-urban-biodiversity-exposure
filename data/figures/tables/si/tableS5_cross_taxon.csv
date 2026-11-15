@@ -1,0 +1,7 @@
+block,setting_from,exposure_of,n,statistic,se,p_value,beta_size
+rank correlation between settings,birds,mammals,7207,0.8708927533092191,,,
+rank correlation between settings,birds,herps,7207,0.7013831392940519,,,
+rank correlation between settings,mammals,herps,7207,0.6880617784522842,,,
+setting predicts the excluded groups,birds,mammals + herps,7207,0.9121514151425719,0.01299000454814955,0.0,-0.013957612464835656
+setting predicts the excluded groups,mammals,birds + herps,7207,0.5688483665823699,0.0069679237392550894,0.0,-0.003038128026285014
+setting predicts the excluded groups,herps,birds + mammals,7207,0.5416745841005509,0.008058061063892152,0.0,-0.0058644760229075105

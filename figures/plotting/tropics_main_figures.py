@@ -1,4 +1,4 @@
-"""A third of the world's threatened land vertebrates exposed to tropical urbanization
+"""The geography of threatened species exposure to tropical urban growth
 
 Author: Rakibul Ahasan
 """
@@ -361,7 +361,8 @@ def _stacked_profiles(fig, W, fig_h, band, base, add, c_base, c_add, top_h, top_
         rax.spines[sp].set_visible(False)
     for sp in ("bottom", "right"):
         rax.spines[sp].set_color(st.MUTED); rax.spines[sp].set_linewidth(0.5)
-    rax.set_xlabel("10$^3$ km$^2$ per 1°", fontsize=st.MIN_PT, labelpad=1.5)
+    rax.text(0.97, 0.008, "10$^3$ km$^2$\nper 1°", transform=rax.transAxes, ha="right",
+             va="bottom", fontsize=KEY_PT, color=st.INK, linespacing=1.0)
     hs = [Patch(facecolor=c_base), Patch(facecolor=c_add)]
     tax.legend(hs, ["Impervious by 2000", "Added 2000\u20132020"], loc="upper left", ncol=2,
                bbox_to_anchor=(0.0, 0.98), frameon=False, fontsize=st.MIN_PT,
@@ -393,11 +394,15 @@ def figure1(name="figure1_expansion_v11", profiles="sides"):
     else:
         map_h = map_w * (tf.LAT1 - tf.LAT0) / (tf.LON1 - tf.LON0)
     head = 0.36 if profiles != "top_right" else 0.36 + top_h + top_gap
-    gap1, label_h, gap2 = (0.66 if _is_robin() else 0.92), 0.16, 0.30
-    icols, igap = 4, 0.06
+    gap1, label_h, gap2 = (0.20 if _is_robin() else 0.92), 0.16, 0.12
+    icols, igap = 4, 0.17
     pw = (live - (icols - 1) * igap) / icols
     ph = pw
     cd_h, foot = 1.34, 0.98
+    ins_l = 0.15
+    gap2 = 0.27
+    pw = (live - ins_l - (icols - 1) * igap) / icols
+    ph = pw
     lab_w, pgap = 0.95, 0.30
     pw2 = (live - lab_w - pgap) / 2
     fig_h = head + map_h + gap1 + label_h + ph + gap2 + cd_h + foot
@@ -421,8 +426,8 @@ def figure1(name="figure1_expansion_v11", profiles="sides"):
         _tropic_lines(ax)
     else:
         tf._outline(ax, context=True)
-    fig.text(ML / W, 1 - 0.055 / fig_h, "a", fontsize=9.2, fontweight="bold",
-             va="top", ha="left", color=st.INK)
+    a_lab = fig.text(ML / W, 1 - 0.055 / fig_h, "a", fontsize=9.2, fontweight="bold",
+                     va="top", ha="left", color=st.INK)
 
     vb, edges = _lat_profile(base, sf.LAT_TOP, sf.LAT_BOT)
     va, _ = _lat_profile(add, sf.LAT_TOP, sf.LAT_BOT)
@@ -440,6 +445,15 @@ def figure1(name="figure1_expansion_v11", profiles="sides"):
     if profiles == "top_right":
         _stacked_profiles(fig, W, fig_h, band, base, add, grey_ramp[2], m2.RAMP_URBAN[4],
                           top_h, top_gap, ML)
+        fig.canvas.draw()
+        rnd_ = fig.canvas.get_renderer()
+        for ax_ in fig.axes:
+            lon_ = [t for t in ax_.get_xticklabels() if "\u00b0W" in t.get_text()]
+            if lon_:
+                bb_ = lon_[0].get_window_extent(rnd_)
+                a_lab.set_y(0.5 * (bb_.y0 + bb_.y1) / fig.bbox.height)
+                a_lab.set_va("center")
+                break
     else:
         _profile(band["left"], ctr, vb / 1e3, grey_ramp[2], "By 2000", True, top, unit,
                  bars=(bctr, bb / 1e3 / bdiv, PROFILE_BIN))
@@ -451,18 +465,19 @@ def figure1(name="figure1_expansion_v11", profiles="sides"):
         return ((lo - tf.LON0) / (tf.LON1 - tf.LON0),
                 (la - tf.LAT0) / (tf.LAT1 - tf.LAT0),
                 (hi - lo) / (tf.LON1 - tf.LON0), (lb - la) / (tf.LAT1 - tf.LAT0))
-    _cbar(ax, 0.20, 0.25, 0.30, g_cmap, g_norm, [0.05, 0.2, 0.5, 2],
-          "Impervious by 2000 (km$^2$)")
-    _cbar(ax, 0.53, 0.27, 0.30, u_cmap, u_norm, [0.05, 0.2, 1, 6],
-          "Added, 2000\u20132020 (km$^2$)")
+    _fig5_map_key(ax, map_h, g_cmap, g_norm, ticks=(0.05, 0.2, 2),
+                  title="Impervious, 2000", x0=0.318, w=0.12)
+    _fig5_map_key(ax, map_h, u_cmap, u_norm, ticks=(0.05, 0.2, 1, 6),
+                  title="Added 2000\u20132020", x0=0.612, w=0.15)
 
     FURNITURE = [(0.56, 0.935, 0.075), (0.56, 0.470, 0.075),
                  (0.030, 0.935, 0.075), (0.030, 0.940, 0.820)]
 
     y_ins = y_map - gap1 - label_h - ph
     for i, idx in enumerate(FOUR):
-        nm, lo, hi, la, lb, col = tf.REGIONS[idx]
-        x = ML + i * (pw + igap)
+        nm, lo, hi, la, lb, _ = tf.REGIONS[idx]
+        col = tf.FRAME_COLORS[i]
+        x = ML + ins_l + i * (pw + igap)
         iax = fig.add_axes([x / W, y_ins / fig_h, pw / W, ph / fig_h])
         iax.set_xlim(lo, hi); iax.set_ylim(la, lb)
         iax.set_xticks([]); iax.set_yticks([]); iax.set_facecolor("white")
@@ -473,6 +488,7 @@ def figure1(name="figure1_expansion_v11", profiles="sides"):
         bar_x, arr_x, arr_y = FURNITURE[i]
         tf.north_arrow(iax, lo, hi, la, lb, x_frac=arr_x, y_frac=arr_y)
         tf.scale_bar(iax, lo, hi, la, lb, km=500, x_frac=bar_x)
+        tf.corner_labels(iax, lo, hi, la, lb)
         iax.text(0.0, 1.020, f"{i + 1}  {nm}", transform=iax.transAxes,
                  fontsize=7.0, fontweight="bold", color=col, ha="left",
                  va="bottom")
@@ -512,12 +528,11 @@ def figure1(name="figure1_expansion_v11", profiles="sides"):
         for j, c in enumerate(colors):
             ax.barh(y, mat[:, j], left=left, height=0.62, color=c,
                     edgecolor="white", lw=0.5)
-            r_, g_, b_ = to_rgb(c)
-            tc = st.INK if 0.299 * r_ + 0.587 * g_ + 0.114 * b_ > 0.62 else "white"
+            tc = st.text_on(c)
             for yi, li, vi in zip(y, left, mat[:, j]):
                 if vi > 7:
                     ax.text(li + vi / 2, yi, f"{vi:.0f}", ha="center", va="center",
-                            fontsize=6.2, color=tc, fontweight="bold")
+                            fontsize=6.2, color=tc)
             left = left + mat[:, j]
         ax.set_yticks(y)
         ax.set_yticklabels(rows if show_rows else [], fontsize=8)
@@ -547,8 +562,11 @@ def figure1(name="figure1_expansion_v11", profiles="sides"):
     cx = fig.add_axes([(x_c + lab_w) / W, y_cd / fig_h, pw2 / W, cd_h / fig_h])
     _stack(cx, hm, [st.HABITAT_COLORS[k] for k in tp.HAB_ORDER], True)
     cx.set_xlabel("Share of converted area by prior land cover (%)", fontsize=7.0)
-    fig.text(x_c / W, y_top, "c", fontsize=9.5, fontweight="bold", va="bottom", ha="left", color=st.INK,
-             transform=offset_copy(fig.transFigure, fig=fig, x=0, y=4.5, units="points"))
+    fig.canvas.draw()
+    _row = [t for t in cx.get_yticklabels() if t.get_text() == "All tropics"][0]
+    _bb = _row.get_window_extent(fig.canvas.get_renderer())
+    y_row = 0.5 * (_bb.y0 + _bb.y1) / fig.bbox.height
+    fig.text(x_c / W, y_row, "c", fontsize=9.5, fontweight="bold", va="center", ha="left", color=st.INK)
     hs = [Rectangle((0, 0), 1, 1, facecolor=st.HABITAT_COLORS[k])
           for k in tp.HAB_ORDER]
     cx.legend(hs, [tp.HAB_LABEL[k] for k in tp.HAB_ORDER], fontsize=6.2, ncol=3,
@@ -564,8 +582,7 @@ def figure1(name="figure1_expansion_v11", profiles="sides"):
         mat.append((t / t.sum() * 100).values)
     _stack(dx, np.array(mat), [st.FORM_COLORS[k] for k in FORMS], True)
     dx.set_xlabel("Share of converted area by expansion form (%)", fontsize=7.0)
-    fig.text(x_d / W, y_top, "d", fontsize=9.5, fontweight="bold", va="bottom", ha="left", color=st.INK,
-             transform=offset_copy(fig.transFigure, fig=fig, x=0, y=4.5, units="points"))
+    fig.text(x_d / W, y_row, "d", fontsize=9.5, fontweight="bold", va="center", ha="left", color=st.INK)
     hs = [Rectangle((0, 0), 1, 1, facecolor=st.FORM_COLORS[k]) for k in FORMS]
     dx.legend(hs, [k.capitalize() for k in FORMS], fontsize=6.2, ncol=3,
               loc="upper center", bbox_to_anchor=(0.5, -0.30), handlelength=1.0,
@@ -576,7 +593,7 @@ def figure1(name="figure1_expansion_v11", profiles="sides"):
 REALMS = ["Indomalayan", "Neotropic", "Afrotropic", "Australasia"]
 
 
-def figure2(name="figure2_exposure_v11"):
+def figure2(name="figure2_exposure_v11", realms=True):
     import tropics_citymaps as cm
     st.apply_rc()
     d = cm.cities()
@@ -585,9 +602,9 @@ def figure2(name="figure2_exposure_v11"):
     W = PAGE_W
     ML, MR = 0.12, 0.15
     live = W - ML - MR
-    head, prof_w, gap_p = 0.36, 0.80, 0.075
+    head, prof_w, gap_p = 0.17, 0.80, 0.075
     ML, MR, prof_w, gap_p = _band_layout(ML, MR, prof_w, gap_p)
-    pgap, ph, y_pan = 0.62, 1.62, 0.86
+    pgap, ph, y_pan = 0.62, 1.62, 0.62
     pw = (live - 2 * pgap) / 3
     map_w = live - prof_w - gap_p
     if _is_robin():
@@ -595,7 +612,7 @@ def figure2(name="figure2_exposure_v11"):
         map_h = map_w * rb.band_aspect(ROBIN_COVER)
     else:
         map_h = map_w * (tf.LAT1 - tf.LAT0) / (tf.LON1 - tf.LON0)
-    gap_mid = 0.92 if _is_robin() else 1.26
+    gap_mid = 0.46 if _is_robin() else 1.26
     fig_h = head + map_h + gap_mid + ph + y_pan
     fig = plt.figure(figsize=(W, fig_h))
 
@@ -609,15 +626,18 @@ def figure2(name="figure2_exposure_v11"):
         _tropic_lines(ax)
     else:
         tf._outline(ax, context=True)
-    fig.text(ML / W, 1 - 0.055 / fig_h, "a", fontsize=9.2, fontweight="bold",
+    fig.text(ML / W, 1 - 0.01 / fig_h, "a", fontsize=9.2, fontweight="bold",
              va="top", ha="left", color=st.INK)
 
     def _rect(lo, hi, la, lb):
         return ((lo - tf.LON0) / (tf.LON1 - tf.LON0),
                 (la - tf.LAT0) / (tf.LAT1 - tf.LAT0),
                 (hi - lo) / (tf.LON1 - tf.LON0), (lb - la) / (tf.LAT1 - tf.LAT0))
-    _cbar(ax, 0.36, 0.28, 0.30, e_cmap, e_norm, [5, 10, 20, 50],
-          "Exposure intensity (km$^2$ km$^{-2}$)")
+    _fig5_map_key(ax, map_h, e_cmap, e_norm, ticks=(5, 10, 20, 50),
+                  title="Exposure intensity\n(km$^2$ km$^{-2}$)",
+                  y0=0.10 + (0.15 if _is_robin() else 0.0))
+    if _is_robin():
+        tf.robinson_degree_labels(ax, lat_side=FIG2_LAT_SIDE, lat_inside=True)
 
     edges = np.arange(sf.LAT_TOP, sf.LAT_BOT - 0.001, -1.0)
     ctr = 0.5 * (edges[:-1] + edges[1:])
@@ -629,9 +649,12 @@ def figure2(name="figure2_exposure_v11"):
     bctr, bmed = _lat_median(d.lat.to_numpy(), d.cost_per_km2.to_numpy(),
                              PROFILE_BIN)
     if _is_robin():
-        _profile(band["left"], ctr, med, cm.CITY_RAMP[3], "Median", True,
-                 np.nanmax(bmed) * 1.06, "km$^2$ km$^{-2}$,\n2\u00b0 bands",
+        _profile(band["left"], ctr, med, cm.CITY_RAMP[3], "", True,
+                 np.nanmax(bmed) * 1.06, "",
                  unit_ha="left", bars=(bctr, bmed, PROFILE_BIN))
+        band["left"].text(0.0, 0.012, "Median, 2\u00b0 bands (km$^2$ km$^{-2}$)",
+                          transform=band["left"].transAxes, fontsize=KEY_PT,
+                          ha="left", va="bottom", color=st.INK)
     else:
         _profile(band["left"], ctr, med, cm.CITY_RAMP[3], "median", True,
                  med.max() * 1.06,
@@ -640,6 +663,9 @@ def figure2(name="figure2_exposure_v11"):
 
     xs = [ML + i * (pw + pgap) for i in range(3)]
     inset = [0.66, 0.40, 0.86]
+    if not realms:
+        pw = (live - pgap) / 2
+        xs, inset = [0.0, ML, ML + pw + pgap], [0.0, 0.40, 0.86]
     bx, cx, dx = (fig.add_axes([(xs[i] + inset[i]) / W, y_pan / fig_h,
                                 (pw - inset[i]) / W, ph / fig_h])
                   for i in range(3))
@@ -654,7 +680,7 @@ def figure2(name="figure2_exposure_v11"):
         bx.plot([q1, q3], [i, i], color=st.INK, lw=1.6, solid_capstyle="butt")
         bx.plot([me], [i], "o", ms=3.0, mfc="white", mec=st.INK, mew=1.0)
     bx.set_yticks(range(1, len(REALMS) + 1))
-    bx.set_yticklabels([f"{r}\nn = {len(x):,}" for r, x in zip(REALMS, v)],
+    bx.set_yticklabels([f"{r}\n$n$ = {len(x):,}" for r, x in zip(REALMS, v)],
                        fontsize=6.0, linespacing=1.4)
     tp._logticks(bx, "x", [3, 10, 30, 100])
     bx.set_xlabel("Exposure intensity (km$^2$ km$^{-2}$)", fontsize=7.0)
@@ -663,13 +689,11 @@ def figure2(name="figure2_exposure_v11"):
     rend = fig.canvas.get_renderer()
     x_left = min(t.get_window_extent(rend).x0 for t in bx.get_yticklabels()
                  if t.get_text()) / fig.bbox.width
-    bx.annotate(f"n = {sum(len(a) for a in v):,} of {len(d):,} "
-                "(Nearctic and Palearctic omitted)",
-                xy=(x_left, -0.27), xycoords=("figure fraction", "axes fraction"),
-                fontsize=5.6, color=st.MUTED, ha="left", va="top",
-                annotation_clip=False)
     st.despine(bx, keep=("bottom",))
-    tp.head(bx, "b", "Within realms as well as between")
+    if realms:
+        tp.head(bx, "b", "Within realms as well as between")
+    else:
+        bx.remove()
 
     x = np.log10(d.urban_added_km2.replace(0, np.nan).values)
     y = np.log10(d.cost_per_km2.values)
@@ -690,7 +714,7 @@ def figure2(name="figure2_exposure_v11"):
     tp._logticks(cx, "y", [1, 3, 10, 30, 100, 300])
     cx.set_xlabel("Urban land added (km$^2$)", fontsize=7.0)
     cx.set_ylabel("Exposure intensity (km$^2$ km$^{-2}$)", fontsize=7.0)
-    tp.head(cx, "c", "Large expansion against high intensity")
+    tp.head(cx, "c" if realms else "b", "Large expansion against high intensity")
     from matplotlib.ticker import FuncFormatter, NullLocator
     kax = tp.colorbar(fig, hb, cx, label="", loc=(0.05, 0.115), w=0.24)
     kax.annotate("Cities", xy=(0.0, 1.0), xycoords="axes fraction",
@@ -718,7 +742,7 @@ def figure2(name="figure2_exposure_v11"):
     for b_ in bp["boxes"]:
         b_.set_facecolor(st.SEQ_ORANGE(0.45)); b_.set_alpha(0.75)
     dx.set_yticks(range(1, len(labs) + 1))
-    dx.set_yticklabels([f"{l}\nn = {len(a):,}" for l, a in zip(labs, vb_)],
+    dx.set_yticklabels([f"{l}\n$n$ = {len(a):,}" for l, a in zip(labs, vb_)],
                        fontsize=6.0, linespacing=1.4)
     dx.set_xlim(bx.get_xlim())
     tp._logticks(dx, "x", [3, 10, 30, 100])
@@ -726,7 +750,7 @@ def figure2(name="figure2_exposure_v11"):
                   loc="right")
     dx.tick_params(axis="y", length=0)
     st.despine(dx, keep=("bottom",))
-    tp.head(dx, "d", "Within biomes")
+    tp.head(dx, "d" if realms else "c", "Within biomes")
     return tp.save(fig, name)
 
 
@@ -767,7 +791,7 @@ def figure3(name="figure3_scale_setting_v11"):
     tp._logticks(ax, "x", [1, 10, 100, 1000]); tp._logticks(ax, "y", [3, 10, 30, 100])
     tp.head(ax, "a", "Size carries almost none")
     tp.stat(ax, f"$\\beta$ = {sp['beta']:+.4f}\n"
-            f"[{sp['ci_lower']:+.4f}, {sp['ci_upper']:+.4f}]\nP = {sp['p_value']:.1g}",
+            f"[{sp['ci_lower']:+.4f}, {sp['ci_upper']:+.4f}]\n$P$ = {sp['p_value']:.1g}",
             "upper right")
     tp.colorbar(fig, hb, ax, loc=(0.60, 0.155))
 
@@ -780,7 +804,7 @@ def figure3(name="figure3_scale_setting_v11"):
     tp._logticks(ax, "x", [1, 3, 10, 30, 100]); tp._logticks(ax, "y", [3, 10, 30, 100])
     tp.head(ax, "b", "Setting carries some")
     tp.stat(ax, f"$\\gamma$ = {sp['gamma_setting']:.3f} $\\pm$ {sp['gamma_se']:.3f}\n"
-            f"n = {sp['n']:,}", "upper left")
+            f"$n$ = {sp['n']:,}", "upper left")
     tp.colorbar(fig, hb, ax, loc=(0.60, 0.155))
 
     ax = cell(1, 0)
@@ -800,7 +824,7 @@ def figure3(name="figure3_scale_setting_v11"):
     st.despine(ax, keep=("bottom",))
     tp.head(ax, "c", "Where the variance sits")
     tp.note(ax, f"Shapley shares, exact over\n64 subsets; they sum to the\n"
-            f"model R$^2$ of {sh['full_R2']:.2f}", "lower right", fs=5.9)
+            f"model $R^2$ of {sh['full_R2']:.2f}", "lower right", fs=5.9)
 
     ax = cell(1, 1)
     dm = dm.reindex(dm.beta_std.abs().sort_values(ascending=False).index)
@@ -811,7 +835,7 @@ def figure3(name="figure3_scale_setting_v11"):
     ax.set_xlabel("Change in log$_{10}$ exposure per SD of the predictor",
                   fontsize=7.0)
     tp.head(ax, "d", "Against the others")
-    tp.note(ax, f"country random intercept\nand biome fixed effects\nn = {sp['n']:,}",
+    tp.note(ax, f"country random intercept\nand biome fixed effects\n$n$ = {sp['n']:,}",
             "lower right", fs=5.9)
 
     return tp.save(fig, name)
@@ -848,7 +872,7 @@ def _ridges(ax, groups, labels, colors, xlim, ref=None, scale_to=0.82, seed=7):
                 zorder=6)
         ax.plot([pk], [on(pk)], "^", ms=3.8, mfc=STAT, mec=STAT, zorder=6)
         ax.text(xlim[0] - 0.03 * (xlim[1] - xlim[0]), b0 + 0.28,
-                f"{lab}\nn = {len(g):,}", ha="right", va="center", fontsize=6.2,
+                f"{lab}\n$n$ = {len(g):,}", ha="right", va="center", fontsize=6.2,
                 linespacing=1.35, color=st.INK)
     if ref is not None:
         ax.axvline(ref, color=st.MUTED, lw=0.7, ls=(0, (3, 2)), zorder=1)
@@ -912,7 +936,7 @@ def figure3_shift(name="figure3_distributions_v1"):
     hi = [int(v) for v in se[1:]]
     lo = [lo[0]] + [h + 1 for h in hi[:-1]]
     s_lab = [f"{a} to {b} species" for a, b in zip(lo, hi)]
-    greens = ["#A8CCB5", "#7DB296", "#52947C", "#2E6F5B", "#1C4A3C"]
+    greens = ["#BFA9D6", "#9C7DC0", "#7651A5", "#5E3D91", "#4E2A84"]
     ax = cell(1, 0)
     _ridges(ax, [y[sq == k] for k in range(5)][::-1], s_lab[::-1],
             greens[::-1], xlim, ref)
@@ -935,7 +959,7 @@ def figure3_shift(name="figure3_distributions_v1"):
     ax.tick_params(axis="y", length=0)
     st.despine(ax, keep=("bottom",))
     _t(ax, "d", "Variance in exposure intensity explained")
-    tp.note(ax, f"Shapley shares sum to the\nmodel R$^2$ of {sh['full_R2']:.2f}",
+    tp.note(ax, f"Shapley shares sum to the\nmodel $R^2$ of {sh['full_R2']:.2f}",
             "lower right", fs=5.9)
     from matplotlib.lines import Line2D
     hs = [Line2D([], [], marker="s", ls="none", ms=3.0, mfc="white", mec=st.INK, mew=0.9),
@@ -953,10 +977,17 @@ def figure3_shift(name="figure3_distributions_v1"):
     return tp.save(fig, name)
 
 
-REALM_COLOR = {"Indomalayan": "#B5361F", "Neotropic": "#1F6F4A",
-               "Afrotropic": "#C98A18", "Australasia": "#3C5C9C"}
-RESP_COLOR = {"all species of concern": "#9A9A9A", "threatened": "#B5361F",
-              "narrow range": "#1F6F4A", "rarity weighted": "#3C5C9C"}
+REALM_COLOR = dict(st.REALM_COLOR)
+RESP_COLOR = {"all species of concern": st.SET_COLOR["all"][0],
+              "threatened": st.SET_COLOR["threatened"][0],
+              "narrow range": st.SET_COLOR["narrow"][0],
+              "rarity weighted": st.SET_COLOR["rarity"][0]}
+RESP_LIGHT = {"all species of concern": st.SET_COLOR["all"][1],
+              "threatened": st.SET_COLOR["threatened"][1],
+              "narrow range": st.SET_COLOR["narrow"][1],
+              "rarity weighted": st.SET_COLOR["rarity"][1]}
+FIG2_LAT_SIDE = "right"
+FIG5_LAT_SIDE = "right"
 
 
 def figure4(name="figure4_concentration_v13"):
@@ -1082,11 +1113,11 @@ def figure4(name="figure4_concentration_v13"):
     return tp.save(fig, name)
 
 
-RARITY_ROW_COLOR = {"Threatened, unweighted": st.BLUE,
-                    "Narrow range, unweighted": "#1F6F4A",
-                    "Species of concern, rarity weighted": "#B5361F",
-                    "Threatened, rarity weighted": st.BLUE,
-                    "Narrow range, rarity weighted": "#1F6F4A"}
+RARITY_ROW_COLOR = {"Threatened, unweighted": st.SET_COLOR["threatened"][0],
+                    "Narrow range, unweighted": st.SET_COLOR["narrow"][0],
+                    "Species of concern, rarity weighted": st.SET_COLOR["all"][0],
+                    "Threatened, rarity weighted": st.SET_COLOR["threatened"][0],
+                    "Narrow range, rarity weighted": st.SET_COLOR["narrow"][0]}
 
 
 def _exemplars(w, geoms, k=3, min_km=3000.0):
@@ -1138,7 +1169,137 @@ def _region_outline(ax, box, letter, n=80):
             zorder=9)
 
 
-def figure5(name="figure5_rarity_v15", bottom="species", regions=None):
+FIG5_REGIONS = [
+    ("Colombian Andes", -76.5, -71.5, 4.0, 8.3, 100),
+    ("Gulf of Guinea", -0.503, 4.503, 4.5975, 8.9025, 100),
+    ("West Java", 104.7469, 109.7531, -8.9277, -4.6223, 100),
+]
+
+
+FIG5_SET_COLORS = {"Species of concern": st.SET_COLOR["all"][::-1],
+                   "Threatened": st.SET_COLOR["threatened"][::-1],
+                   "Narrow range": st.SET_COLOR["narrow"][::-1]}
+
+
+def _fig5_region_keys(ae, af, pw, ph, live):
+    import region_panels as rp
+    from matplotlib.colorbar import ColorbarBase
+    from matplotlib.ticker import NullLocator
+    thick = 0.085 / ph
+    sw = ae.inset_axes([0.06, 0.075 - thick / 2, 0.24 / pw, thick])
+    sw.add_patch(Rectangle((0, 0), 1, 1, facecolor=rp.URBAN, edgecolor="none"))
+    sw.set_xlim(0, 1); sw.set_ylim(0, 1); sw.axis("off")
+    ae.text(0.06 + 0.30 / pw, 0.075, "Urban land added", transform=ae.transAxes,
+            ha="left", va="center", fontsize=st.MIN_PT, color=st.INK, zorder=10)
+    x0, yb_ = 0.47, 0.105
+    cax = af.inset_axes([x0, yb_, live * 0.62 * 0.62 / 3 / pw, thick])
+    cmap, norm = rp._rich_cmap_norm()
+    cb = ColorbarBase(cax, cmap=cmap, norm=norm, orientation="horizontal",
+                      ticks=rp.RICH_TICKS, extend="neither")
+    cax.xaxis.set_minor_locator(NullLocator())
+    cb.set_ticklabels([f"{t:g}" for t in rp.RICH_TICKS])
+    cax.tick_params(labelsize=st.MIN_PT, length=2, width=0.5, colors=st.INK, pad=1.5)
+    cb.outline.set_linewidth(0.4)
+    cax.annotate("Narrow-range species",
+                 xy=(0.0, 1.0), xycoords="axes fraction", xytext=(0, 2.0),
+                 textcoords="offset points", ha="left", va="bottom",
+                 fontsize=st.MIN_PT, color=st.INK, linespacing=1.1)
+
+
+def _fig5_panels_bc(fig, W, fig_h, yb, bh):
+    import tropics_speciesmaps as sm
+    rv = {r["label"]: r for r in _plan()["rarity_variants"]}
+    s0 = json.loads((TABLE_DIR / "scaling_spatial.json").read_text())["cost_per_km2"]
+    sets = [("Species of concern", dict(beta=s0["beta"], ci=[s0["ci_lower"], s0["ci_upper"]], n=s0["n"]),
+             rv["Species of concern, rarity weighted"]),
+            ("Threatened", rv["Threatened, unweighted"], rv["Threatened, rarity weighted"]),
+            ("Narrow range", rv["Narrow range, unweighted"], rv["Narrow range, rarity weighted"])]
+    bx = fig.add_axes([1.30 / W, yb / fig_h, 2.10 / W, bh / fig_h])
+    bx.axvline(0, color=st.FAINT, lw=0.7, zorder=0)
+    xs = np.linspace(-0.32, 0.17, 1200)
+    ticks, labels, y = [], [], 0.0
+    for g, (lab, u, r) in enumerate(sets[::-1]):
+        for e, kind, c in ((r, "Rarity weighted", FIG5_SET_COLORS[lab][1]),
+                           (u, "Unweighted", FIG5_SET_COLORS[lab][0])):
+            se = (e["ci"][1] - e["ci"][0]) / (2 * 1.959964)
+            dens = np.exp(-0.5 * ((xs - e["beta"]) / se) ** 2)
+            bx.fill_between(xs, y, y + 0.78 * dens, color=c, alpha=0.45, lw=0, zorder=2)
+            bx.plot(xs, y + 0.78 * dens, color=c, lw=0.7, zorder=3)
+            bx.plot(e["ci"], [y, y], color=FIG5_SET_COLORS[lab][1], lw=1.4, solid_capstyle="butt", zorder=4)
+            bx.scatter([e["beta"]], [y], s=26, color=c, edgecolor=FIG5_SET_COLORS[lab][1], lw=0.9, zorder=5)
+            ticks.append(y); labels.append(kind)
+            y += 1.0
+        bx.text(-0.335, y - 0.12, f"{lab}, $n$ = {u['n']:,}", ha="left", va="bottom",
+                fontweight="bold", color=st.darker(FIG5_SET_COLORS[lab][1], 0.18))
+        y += 0.65
+    bx.set_yticks(ticks)
+    bx.set_yticklabels(labels)
+    bx.set_ylim(-0.35, y - 0.35)
+    bx.set_xlim(-0.335, 0.165)
+    bx.set_xticks([-0.3, -0.2, -0.1, 0.0, 0.1])
+    bx.set_xlabel("Size exponent $\\beta$")
+    bx.tick_params(axis="y", length=0)
+    st.despine(bx, keep=("bottom",))
+    tp.head(bx, "b", "Rarity weighting and the size exponent")
+
+    t = pd.read_csv(tp.TAB_DIR / "species_concentration.csv")
+    t = t[(t.rule == "centroid") & t.is_threat & (t.converted_km2 > 0)].rename(columns={"sci_name": "sci"})
+    t["pct"] = 100 * t.converted_km2 / t.range_km2
+    cx = fig.add_axes([4.12 / W, yb / fig_h, 2.78 / W, bh / fig_h])
+    for k in ("VU", "EN", "CR"):
+        q = t[t.category == k]
+        cx.scatter(q.range_km2, q.pct, s=5, color=sm.CAT_COLORS[k], alpha=0.55, lw=0, zorder=2,
+                   rasterized=True)
+    edges = np.logspace(np.log10(t.range_km2.min()), np.log10(t.range_km2.max()), 19)
+    b_ = np.digitize(t.range_km2, edges[1:-1])
+    med = t.groupby(b_).pct.median()
+    cnt = t.groupby(b_).size()
+    keep = cnt[cnt >= 30].index
+    ctr = np.sqrt(edges[:-1] * edges[1:])
+    cx.plot(ctr[keep], med.loc[keep], color=st.INK, lw=1.1, zorder=4)
+    r_ = t.loc[t.sci == "Rattus ranjiniae"].iloc[0]
+    cx.annotate(r_.sci, xy=(r_.range_km2, r_.pct), xytext=(1.5e3, r_.pct), textcoords="data",
+                style="italic", color=st.INK, va="center", ha="left",
+                arrowprops=dict(arrowstyle="-", color=st.MUTED, lw=0.5, shrinkA=1, shrinkB=3))
+    cx.set_xscale("log"); cx.set_yscale("log")
+    cx.set_xlim(1, 1e9); cx.set_ylim(1e-7, 100)
+    cx.set_xticks([1e1, 1e3, 1e5, 1e7, 1e9])
+    cx.set_yticks([1e-6, 1e-4, 1e-2, 1, 100])
+    cx.set_xlabel("Global mapped range (km$^2$)")
+    cx.set_ylabel("Share of mapped range converted (%)")
+    st.despine(cx, keep=("bottom", "left"))
+    hs = [plt.Line2D([0], [0], marker="o", ls="none", ms=4.0, color=sm.CAT_COLORS[k]) for k in ("CR", "EN", "VU")]
+    hs.append(plt.Line2D([0], [0], color=st.INK, lw=1.1))
+    cx.legend(hs, ["CR", "EN", "VU", "Median"], loc="lower left", ncol=1, frameon=False, handlelength=0.9,
+              handletextpad=0.4, labelspacing=0.3, borderpad=0, borderaxespad=0,
+              bbox_to_anchor=(10, 1e-6), bbox_transform=cx.transData)
+    tp.head(cx, "c", "Share of range converted, all threatened species")
+    return sm.worst(n=15, cats=("CR", "EN", "VU"))
+
+
+KEY_PT = 7.0
+
+
+def _fig5_map_key(ax, map_h, cmap, norm, ticks=(1, 10, 100, 1000),
+                  title="Exposure intensity\n(10$^{-5}$ km$^{-2}$)", x0=0.625, w=0.15,
+                  y0=0.10):
+    from matplotlib.colorbar import ColorbarBase
+    from matplotlib.ticker import NullLocator
+    cax = ax.inset_axes([x0, y0, w, 0.075 / map_h])
+    cb = ColorbarBase(cax, cmap=cmap, norm=norm, orientation="horizontal",
+                      ticks=list(ticks), extend="neither")
+    cax.xaxis.set_minor_locator(NullLocator())
+    cb.set_ticklabels([f"{t:g}" for t in ticks])
+    cax.tick_params(labelsize=KEY_PT, length=1.5, width=0.4, colors=st.INK, pad=1.0)
+    cb.outline.set_linewidth(0.4)
+    cax.annotate(title,
+                 xy=(0.0, 1.0), xycoords="axes fraction", xytext=(0, 2.0),
+                 textcoords="offset points", ha="left", va="bottom",
+                 fontsize=KEY_PT, color=st.INK, linespacing=1.1)
+    return cb
+
+
+def figure5(name="figure5_rarity_v15", bottom="species", regions=None, middle=True):
     import tropics_citymaps as cm
     import tropics_speciesmaps as sm
     st.apply_rc()
@@ -1150,7 +1311,7 @@ def figure5(name="figure5_rarity_v15", bottom="species", regions=None):
     W = PAGE_W
     ML, MR = 0.09, 0.26
     live = W - ML - MR
-    head, prof_w, gap_p = 0.36, 0.80, 0.075
+    head, prof_w, gap_p = 0.17, 0.80, 0.075
     ML, MR, prof_w, gap_p = _band_layout(ML, MR, prof_w, gap_p)
     map_w = live - prof_w - gap_p
     if _is_robin():
@@ -1161,17 +1322,19 @@ def figure5(name="figure5_rarity_v15", bottom="species", regions=None):
     bh = 2.05 if bottom == "regions" else 1.32
     if bottom == "regions":
         import region_panels as rp
-        reg = sorted(regions or rp.NAMED_REGIONS,
+        reg = sorted(regions or FIG5_REGIONS,
                      key=lambda b: 0.5 * (b[1] + b[2]))
         ML3, MR3, gap3 = 0.30, 0.10, 0.16
         pw2 = (W - ML3 - MR3 - 2 * gap3) / 3
         ph2 = pw2 * 0.86
-        key3, y2 = 0.46, 0.60
-        yb = y2 + ph2 + 0.88
+        key3, y2 = 0.0, 0.27
+        yb = y2 + ph2 + 0.68
     else:
         yb = 2.92
         ph2, y2, pw2 = 1.48, 0.44, 1.96
-    gap_mid = 0.88 if _is_robin() else 1.18
+    gap_mid = 0.42 if _is_robin() else 1.18
+    if not middle:
+        yb, bh = y2 + ph2 + 0.26, 0.0
     fig_h = yb + bh + gap_mid + map_h + head
     fig = plt.figure(figsize=(W, fig_h))
 
@@ -1185,15 +1348,16 @@ def figure5(name="figure5_rarity_v15", bottom="species", regions=None):
         _tropic_lines(ax)
     else:
         tf._outline(ax, context=True)
-    fig.text(ML / W, 1 - 0.055 / fig_h, "a", fontsize=9.2, fontweight="bold",
+    fig.text(ML / W, 1 - 0.01 / fig_h, "a", fontsize=9.2, fontweight="bold",
              va="top", ha="left", color=st.INK)
 
     def _rect(lo, hi, la, lb):
         return ((lo - tf.LON0) / (tf.LON1 - tf.LON0),
                 (la - tf.LAT0) / (tf.LAT1 - tf.LAT0),
                 (hi - lo) / (tf.LON1 - tf.LON0), (lb - la) / (tf.LAT1 - tf.LAT0))
-    _cbar(ax, 0.33, 0.34, 0.30, r_cmap, r_norm, [1, 10, 100, 1000],
-          "Rarity-weighted exposure intensity (10$^{-5}$ km$^{-2}$)")
+    _fig5_map_key(ax, map_h, r_cmap, r_norm, y0=0.10 + (0.15 if _is_robin() else 0.0))
+    if _is_robin():
+        tf.robinson_degree_labels(ax, lat_side=FIG5_LAT_SIDE, lat_inside=True)
 
     edges = np.arange(sf.LAT_TOP, sf.LAT_BOT - 0.001, -1.0)
     ctr = 0.5 * (edges[:-1] + edges[1:])
@@ -1203,9 +1367,12 @@ def figure5(name="figure5_rarity_v15", bottom="species", regions=None):
              .reindex(range(len(ctr))).fillna(0.0).to_numpy())
     bctr, bmed = _lat_median(d.lat.to_numpy(), v, PROFILE_BIN)
     if _is_robin():
-        _profile(band["right"], ctr, med, cm.CITY_RAMP[3], "Median", False,
-                 np.nanmax(bmed) * 1.06, "10$^{-5}$ km$^{-2}$,\n2\u00b0 bands",
+        _profile(band["right"], ctr, med, cm.CITY_RAMP[3], "", False,
+                 np.nanmax(bmed) * 1.06, "",
                  unit_ha="right", bars=(bctr, bmed, PROFILE_BIN))
+        band["right"].text(1.0, 0.012, "Median, 2\u00b0 bands",
+                           transform=band["right"].transAxes, fontsize=KEY_PT,
+                           ha="right", va="bottom", color=st.INK)
     else:
         _profile(band["right"], ctr, med, cm.CITY_RAMP[3], "latitudinal\nmedian",
                  False,
@@ -1213,70 +1380,26 @@ def figure5(name="figure5_rarity_v15", bottom="species", regions=None):
                  f"0\u2013{med.max():.0f}\n10$^{{-5}}$ km$^{{-2}}$\nper degree",
                  unit_ha="right", bars=(bctr, bmed, PROFILE_BIN))
 
-    rv = _plan()["rarity_variants"]
-    bx = fig.add_axes([1.12 / W, yb / fig_h, 2.20 / W, bh / fig_h])
-    lab = [r["label"].replace(", ", ",\n") for r in rv]
-    beta = np.array([r["beta"] for r in rv])
-    lo = np.array([r["ci"][0] for r in rv]); hi = np.array([r["ci"][1] for r in rv])
-    yy = np.arange(len(rv))[::-1]
-    bx.axvline(0, color=STAT, lw=0.8, ls=(0, (3, 2)))
-    for yi, b, l, h_, r in zip(yy, beta, lo, hi, rv):
-        c = RARITY_ROW_COLOR[r["label"]]
-        bx.plot([l, h_], [yi, yi], color=c, lw=1.6, solid_capstyle="round")
-        bx.plot([b], [yi], "o", ms=3.4, mfc="white", mec=c, mew=1.2)
-        wid, pad_ = 0.13, 0.012
-        if h_ + pad_ + wid < 0 or l > 0 or l - pad_ - wid < -0.33:
-            tx, ha_ = h_ + pad_, "left"
-        else:
-            tx, ha_ = l - pad_, "right"
-        bx.text(tx, yi, f"n = {r['n']:,}", fontsize=5.5, va="center",
-                ha=ha_, color=st.MUTED)
-    bx.set_yticks(yy); bx.set_yticklabels(lab, fontsize=5.9, linespacing=1.4)
-    bx.set_xlim(-0.33, 0.27)
-    bx.set_xticks([-0.3, -0.2, -0.1, 0.0, 0.1, 0.2])
-    bx.set_xlabel("Size exponent $\\beta$", fontsize=7.2)
-    bx.tick_params(axis="y", length=0)
-    st.despine(bx, keep=("bottom",))
-    tp.head(bx, "b", "Five responses, five exponents")
-
-    w = sm.worst(n=15, cats=("CR", "EN", "VU"))
-    cx = fig.add_axes([4.92 / W, yb / fig_h, 1.98 / W, bh / fig_h])
-    ww = w.iloc[::-1].reset_index(drop=True)
-    yy = np.arange(len(ww))
-    cols = [sm.CAT_COLORS.get(c, st.MUTED) for c in ww.category]
-    cx.hlines(yy, 0, ww.share * 100, color=st.HAIR, lw=0.8, zorder=1)
-    cx.scatter(ww.share * 100, yy, s=17, c=cols, edgecolor="white", lw=0.4,
-               zorder=3)
-    cx.set_yticks(yy)
-    cx.set_yticklabels([f"{r.sci}" for r in ww.itertuples()], fontsize=5.2,
-                       style="italic")
-    cx.set_xlabel("Share of mapped range converted (%)")
-    cx.set_xlim(0, ww.share.max() * 100 * 1.10)
-    cx.tick_params(axis="y", length=0)
-    st.despine(cx, keep=("bottom",))
-    tp.head(cx, "c", "Largest share of range converted")
-    hs = [plt.Line2D([0], [0], marker="o", ls="none", ms=2.8,
-                     color=sm.CAT_COLORS.get(k, st.MUTED)) for k in ("CR", "EN", "VU")]
-    cx.legend(hs, ["Critically Endangered", "Endangered", "Vulnerable"],
-              fontsize=5.2, loc="lower right", handlelength=0.7,
-              handletextpad=0.4, labelspacing=0.30, borderpad=0.3,
-              frameon=False, bbox_to_anchor=(1.03, -0.03))
+    w = _fig5_panels_bc(fig, W, fig_h, yb, bh) if middle else None
+    tags = "def" if middle else "bcd"
 
     if bottom == "regions":
         rich, added = rp.load_layers()
         rbreaks = rp._rich_breaks(rich)
         boxes = [rp._fit_box(b, ph2 / pw2) for b in reg]
+        axs = []
         for i, box in enumerate(boxes):
             x = ML3 + i * (pw2 + gap3)
             a = fig.add_axes([x / W, y2 / fig_h, pw2 / W, ph2 / fig_h])
-            rp.region_panel(a, box, rich, added, rbreaks)
-            a.text(0.0, 1.035, f"{'def'[i]}  {box[0]}", transform=a.transAxes,
+            rp.region_panel(a, box, rich, added, rbreaks,
+                            scale_side="left" if i == 2 else "right",
+                            corners=True)
+            a.text(0.0, 1.035, f"{tags[i]}  {box[0]}", transform=a.transAxes,
                    fontsize=st.MIN_PT, fontweight="bold", ha="left",
                    va="bottom", color=st.INK)
-            _region_outline(ax, box, "def"[i])
-        rp._key(fig, [ML3 / W, 0.12 / fig_h,
-                      ((W - ML3 - MR3) * 0.62) / W, (key3 - 0.20) / fig_h],
-                rbreaks, "Narrow-range species with a mapped range in the cell")
+            _region_outline(ax, box, tags[i])
+            axs.append(a)
+        _fig5_region_keys(axs[1], axs[2], pw2, ph2, W - ML3 - MR3)
         return tp.save(fig, name)
 
     geoms, _ = sm._geoms_for(w.sp_id.tolist())
@@ -1315,8 +1438,8 @@ def figure6(name="figure6_matched_cities_v10", max_px=900, pairs=None,
     ncol, nrow = len(pairs), 2
     W = PAGE_W
     L_in, R_in = 0.34, 0.06
-    col_gap, row_gap = 0.19, 0.16
-    label_in, head_in, foot_in = 0.50, 0.10, 0.34
+    col_gap, row_gap = 0.19, 0.25
+    label_in, head_in, foot_in = 0.50, 0.10, 0.46
     pw_in = (W - L_in - R_in - (ncol - 1) * col_gap) / ncol
     ph_in = pw_in * 0.72
     fig_h = head_in + nrow * (ph_in + label_in) + (nrow - 1) * row_gap + foot_in
@@ -1375,7 +1498,8 @@ def figure6(name="figure6_matched_cities_v10", max_px=900, pairs=None,
                     va="baseline", color=st.MUTED)
             ax.text(1.0, 1.030, f"{info['cost_per_km2']:.0f} km$^2$ per km$^2$",
                     transform=ax.transAxes, fontsize=6.6, ha="right",
-                    va="baseline", color=STAT, fontweight="bold")
+                    va="baseline", color=STAT, fontweight="normal")
+            tf.corner_labels(ax, x0, x1, y0, y1, nd=2)
             _na(ax, x0, x1, y0, y1)
             kmdeg = 111.32 * np.cos(np.radians(lat_c))
             target = (x1 - x0) * kmdeg * 0.26
@@ -1388,7 +1512,7 @@ def figure6(name="figure6_matched_cities_v10", max_px=900, pairs=None,
                     f"{km:g} km", fontsize=5.8, ha="center", va="bottom",
                     color=st.INK, zorder=9)
             if c == 0:
-                ax.text(-0.075, 0.5, ROW_LAB[r], transform=ax.transAxes,
+                ax.text(-0.105, 0.5, ROW_LAB[r], transform=ax.transAxes,
                         fontsize=6.4, rotation=90, ha="right", va="center",
                         color=st.MUTED)
 

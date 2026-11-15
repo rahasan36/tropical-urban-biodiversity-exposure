@@ -1,0 +1,17 @@
+{
+ "spec": "A",
+ "covariates": "ls + lset + ladd",
+ "deg": 10.0,
+ "buffer_km": 250.0,
+ "n_scored": 7184,
+ "folds": 10,
+ "n_positive": 1625,
+ "auc": 0.6733739051019136,
+ "brier": 0.16402950712709582,
+ "cal_slope": 0.7370311923909343,
+ "cal_intercept": -0.36172877320219143,
+ "mean_pred": 0.2415317182913135,
+ "obs_rate": 0.22619710467706014,
+ "intensity_r2_log10": 0.07278082511695427,
+ "combined_r2": -0.009660693762063577
+}

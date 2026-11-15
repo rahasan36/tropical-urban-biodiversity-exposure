@@ -1,4 +1,4 @@
-"""A third of the world's threatened land vertebrates exposed to tropical urbanization
+"""The geography of threatened species exposure to tropical urban growth
 
 Author: Rakibul Ahasan
 """
@@ -48,6 +48,7 @@ def merged_categories(sp):
     out["category"] = out["category"].astype(str).str.strip().str.upper()
     miss = out["category"].isin(["", "NAN", "NONE"])
     out.loc[miss, "category"] = out.loc[miss, "bird_category"].astype(str).str.upper()
+    out["category"] = out["category"].str.split(" ").str[0]
     return out
 
 

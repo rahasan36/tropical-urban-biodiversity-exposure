@@ -1,4 +1,4 @@
-"""A third of the world's threatened land vertebrates exposed to tropical urbanization
+"""The geography of threatened species exposure to tropical urban growth
 
 Author: Rakibul Ahasan
 """
@@ -20,25 +20,19 @@ BLOB = CACHE_DIR / "ranges.bin"
 INDEX = CACHE_DIR / "ranges_idx.jsonl"
 STATE = CACHE_DIR / "state.json"
 
-SIMPLIFY_DEG = 0.002
 BAND_MARGIN = SETTING_BUFFER_KM / 111.32
 CLIP_BOX = box(-180.0, -TROPIC_LAT - BAND_MARGIN, 180.0, TROPIC_LAT + BAND_MARGIN)
 STATE_EVERY = 40
 
-
-MAX_COORDS = 20_000
 
 
 def _prepare(g):
     b = shapely.bounds(g)
     if b[3] < CLIP_BOX.bounds[1] or b[1] > CLIP_BOX.bounds[3]:
         return None
-    if shapely.get_num_coordinates(g) > MAX_COORDS:
-        g = g.simplify(SIMPLIFY_DEG, preserve_topology=False)
+    if b[1] >= CLIP_BOX.bounds[1] and b[3] <= CLIP_BOX.bounds[3]:
+        return g
     gi = g.intersection(CLIP_BOX)
-    if gi.is_empty:
-        return None
-    gi = gi.simplify(SIMPLIFY_DEG, preserve_topology=True)
     return None if gi.is_empty else gi
 
 

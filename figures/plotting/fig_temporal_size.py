@@ -1,4 +1,4 @@
-"""A third of the world's threatened land vertebrates exposed to tropical urbanization
+"""The geography of threatened species exposure to tropical urban growth
 
 Author: Rakibul Ahasan
 """
@@ -23,8 +23,6 @@ ICOL = ["#E0A36E", "#94A1B5", "#5F7391", "#2B3A52"]
 
 def title(ax, letter, text, x=-0.27, dx=0.075):
     ax.text(x, 1.05, letter, transform=ax.transAxes, fontsize=st.MIN_PT + 1,
-            fontweight="bold", ha="left", va="bottom", color=st.INK)
-    ax.text(x + dx, 1.05, text, transform=ax.transAxes, fontsize=st.MIN_PT,
             fontweight="bold", ha="left", va="bottom", color=st.INK)
 
 
@@ -134,7 +132,7 @@ def panel_ratio(ax, g):
     return [Line2D([], [], color=c, marker="o", ms=3.6, lw=1.2, mec="white", mew=0.4) for c in ICOL], ILAB
 
 
-def figure(name="figure_temporal_size_v1"):
+def figure(name="figure_temporal_size_v1", land_share=True):
     st.apply_rc()
     g = classes4()
     W, H = tp.PAGE_W, 6.4
@@ -146,6 +144,13 @@ def figure(name="figure_temporal_size_v1"):
     ax = [[fig.add_axes([L + j * (cw + hg), B + (1 - i) * (ch + vg), cw, ch]) for j in range(3)]
           for i in range(2)]
     key_y = B + ch + vg - 0.080
+    k = 1.0
+    if not land_share:
+        for a in ax[1]:
+            a.remove()
+        bw = (R - L - hg) / 2
+        ax[1] = [None] + [fig.add_axes([L + j * (bw + hg), B, bw, ch]) for j in range(2)]
+        k = cw / bw
 
     def key(a, hl, ncol, x_off=-0.06):
         bb = a.get_position()
@@ -155,24 +160,29 @@ def figure(name="figure_temporal_size_v1"):
 
     hl = panel_ranksize(ax[0][0])
     ax[0][0].legend(*hl, loc="lower left", frameon=False, handlelength=1.2, fontsize=st.MIN_PT,
-                    title="Year   α (≥50 km²)", title_fontsize=st.MIN_PT,
+                    title="Year   $\\alpha$ (≥50 km²)", title_fontsize=st.MIN_PT,
                     alignment="left", borderaxespad=0.1)
     title(ax[0][0], "a", "Rank-size distribution")
     key(ax[0][1], panel_area_share(ax[0][1]), 1)
     title(ax[0][1], "b", "Agglomerated area by size class")
     key(ax[0][2], panel_events(ax[0][2]), 1)
     title(ax[0][2], "c", "Emergence and coalescence")
-    hl = panel_land_share(ax[1][0], g)
-    bb = ax[0][0].get_position()
-    fig.legend(*hl, loc="upper left", bbox_to_anchor=(bb.x0 - 0.06, key_y), ncol=2, frameon=False,
-               handlelength=1.1, handletextpad=0.4, columnspacing=0.8, fontsize=st.MIN_PT,
-               borderaxespad=0, title="Impervious area at period start (d, f)",
-               title_fontsize=st.MIN_PT, alignment="left")
-    title(ax[1][0], "d", "Land added by size at period start")
+    if land_share:
+        hl = panel_land_share(ax[1][0], g)
+        bb = ax[0][0].get_position()
+        fig.legend(*hl, loc="upper left", bbox_to_anchor=(bb.x0 - 0.06, key_y), ncol=2, frameon=False,
+                   handlelength=1.1, handletextpad=0.4, columnspacing=0.8, fontsize=st.MIN_PT,
+                   borderaxespad=0, title="Impervious area at period start (d, f)",
+                   title_fontsize=st.MIN_PT, alignment="left")
+        title(ax[1][0], "d", "Land added by size at period start")
     panel_gibrat(ax[1][1])
-    title(ax[1][1], "e", "Growth rate and size")
-    panel_ratio(ax[1][2], g)
-    title(ax[1][2], "f", "Exposure relative to land added")
+    title(ax[1][1], "e" if land_share else "d", "Growth rate and size", x=-0.27 * k, dx=0.075 * k)
+    hl = panel_ratio(ax[1][2], g)
+    title(ax[1][2], "f" if land_share else "e", "Exposure relative to land added", x=-0.27 * k, dx=0.075 * k)
+    if not land_share:
+        ax[1][2].legend(*hl, loc="lower left", ncol=2, frameon=False, handlelength=1.4, handletextpad=0.4,
+                        columnspacing=0.8, fontsize=st.MIN_PT, borderaxespad=0.2,
+                        title="Impervious area at period start", title_fontsize=st.MIN_PT, alignment="left")
     return tp.save(fig, name)
 
 

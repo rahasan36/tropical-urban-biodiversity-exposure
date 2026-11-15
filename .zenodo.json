@@ -1,16 +1,43 @@
 {
-  "title": "Code for: A third of the world's threatened land vertebrates exposed to tropical urbanization",
+  "title": "Code for: The geography of threatened species exposure to tropical urban growth",
   "upload_type": "software",
-  "description": "<p>Code for the paper \"A third of the world's threatened land vertebrates exposed to tropical urbanization\", which delineates 7,229 tropical urban agglomerations from 30 m impervious-surface dynamics and measures the expert-mapped range of threatened and range-restricted land vertebrates that their expansion converted between 2000 and 2020. The deposit holds the Python code of the measurement and the analysis, the scripts that draw the figures of the paper and its Supplementary Information with the figures they draw and the derived data they read, and the instructions for obtaining the source data.</p><p>The deposit does not redistribute the source data (GISD30, GLC_FCS30D, IUCN Red List spatial data, BirdLife International bird distribution maps, Natural Earth and RESOLVE Ecoregions 2017), which are available from their providers under their own terms. README.md gives the source and the expected location of each product.</p>",
+  "description": "<p>Code for the paper \"The geography of threatened species exposure to tropical urban growth\", which delineates 7,229 tropical urban agglomerations from 30 m impervious-surface dynamics and measures the expert-mapped range of threatened and range-restricted land vertebrates that their expansion converted between 2000 and 2020. The deposit holds the Python code of the measurement and the analysis, the scripts that draw the figures, Extended Data figures and Extended Data tables of the paper with the outputs they draw and the derived data they read, the Supplementary Data, a workbook of the values plotted in every figure, and the instructions for obtaining the source data.</p><p>The deposit does not redistribute the source data (GISD30, GLC_FCS30D, IUCN Red List spatial data, BirdLife International bird distribution maps, Natural Earth and RESOLVE Ecoregions 2017), which are available from their providers under their own terms. README.md gives the source and the expected location of each product.</p>",
   "creators": [
-    {"name": "Ahasan, Rakibul", "affiliation": "Esri, Redlands, CA, USA", "orcid": "0000-0003-4772-8499"},
-    {"name": "Güneralp, Burak", "affiliation": "Department of Geography, Texas A&M University, College Station, TX, USA", "orcid": "0000-0002-5825-0630"},
-    {"name": "Chowdhury, Shawan", "affiliation": "School of Biological Sciences, Monash University, Melbourne, VIC, Australia"}
+    {
+      "name": "Ahasan, Rakibul",
+      "affiliation": "Department of Geography, Texas A&M University, College Station, TX, USA 77843; Environmental Systems Research Institute (Esri), Redlands, CA, USA 92373",
+      "orcid": "0000-0003-4772-8499"
+    },
+    {
+      "name": "Güneralp, Burak",
+      "affiliation": "Department of Geography, Texas A&M University, College Station, TX, USA 77843",
+      "orcid": "0000-0002-5825-0630"
+    },
+    {
+      "name": "Chowdhury, Shawan",
+      "affiliation": "School of Biological Sciences, Monash University, Melbourne, VIC, Australia"
+    },
+    {
+      "name": "Fitzgerald, Lee A.",
+      "affiliation": "Department of Ecology and Conservation Biology, Texas A&M University, College Station, TX, USA 77843"
+    }
   ],
   "access_right": "open",
   "license": "cc-by-nc-nd-4.0",
-  "keywords": ["urban expansion", "tropics", "biodiversity", "threatened species", "range-restricted species", "impervious surface", "urban agglomerations"],
+  "keywords": [
+    "urban expansion",
+    "tropics",
+    "biodiversity",
+    "threatened species",
+    "range-restricted species",
+    "impervious surface",
+    "urban agglomerations"
+  ],
   "related_identifiers": [
-    {"identifier": "https://github.com/rahasan36/tropical-urban-biodiversity-exposure", "relation": "isSupplementTo", "scheme": "url"}
+    {
+      "identifier": "https://github.com/rahasan36/tropical-urban-biodiversity-exposure",
+      "relation": "isSupplementTo",
+      "scheme": "url"
+    }
   ]
 }

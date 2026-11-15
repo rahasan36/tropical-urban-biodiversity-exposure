@@ -1,4 +1,4 @@
-"""A third of the world's threatened land vertebrates exposed to tropical urbanization
+"""The geography of threatened species exposure to tropical urban growth
 
 Author: Rakibul Ahasan
 """
@@ -39,9 +39,11 @@ def _points(ax, d, col, breaks, ramp, size_by="urban_km2_final", zorder=6):
 
 
 def city_map(col, breaks, title, legend_title, name, ramp=CITY_RAMP,
-             color_by=True, flat_color="#C24A10", sample=True):
+             color_by=True, flat_color="#C24A10", sample=True, degrees=False):
     fig, ax, insets = tf.band_figure(title=title, panel_letter="a",
-                                     legend_in_map=True, land="white")
+                                     legend_in_map=True, land="white",
+                                     degrees=degrees,
+                                     col_gap=0.17 if degrees else None)
     d = cities(sample=sample)
     for a in [ax] + [i for i, _ in insets]:
         a._outline_on_top()
@@ -61,7 +63,7 @@ def city_map(col, breaks, title, legend_title, name, ramp=CITY_RAMP,
                        facecolor="white", edgecolor="#D0CDC8", lw=0.5,
                        zorder=10, clip_on=False))
     ax.text(lx + 0.006, ly + lh_ - 0.02, "City urban extent (km$^2$)",
-            transform=ax.transAxes, fontsize=5.6, fontweight="bold", ha="left",
+            transform=ax.transAxes, fontsize=5.6, fontweight="normal", ha="left",
             va="top", color=st.INK, zorder=11)
     keys = [5.0, 100.0, 2000.0]
     lo, hi = d.urban_km2_final.min(), d.urban_km2_final.max()
@@ -81,7 +83,7 @@ def map_inventory(name="fig_map_inventory_v2"):
     return city_map("urban_km2_final", breaks,
                     "Spatial inventory of the 7,229 delineated agglomerations",
                     "City urban extent, 2020 (km$^2$)", name, color_by=False,
-                    sample=False)
+                    sample=False, degrees=True)
 
 
 def map_cost(name="fig_map_city_cost_v2"):

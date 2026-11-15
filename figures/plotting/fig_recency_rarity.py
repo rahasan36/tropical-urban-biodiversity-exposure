@@ -1,4 +1,4 @@
-"""A third of the world's threatened land vertebrates exposed to tropical urbanization
+"""The geography of threatened species exposure to tropical urban growth
 
 Author: Rakibul Ahasan
 """
@@ -72,9 +72,9 @@ def panel_binned(ax, d, col, scale, ylabel, color, marker, ylim):
     ax.set_xlabel("Share of 2020 surface\nadded after 2000 (%)")
     ax.set_ylabel(ylabel)
     r = stats.spearmanr(d.recent, d[col])
-    p = "P < 10$^{-64}$" if r.pvalue < 1e-64 else f"P = {r.pvalue:.3f}"
+    p = "$P$ < 10$^{-64}$" if r.pvalue < 1e-64 else f"$P$ = {r.pvalue:.3f}"
     sign = "\u2212" if r.statistic < 0 else ""
-    ax.text(0.98, 0.98, f"ρ = {sign}{abs(r.statistic):.2f}\n{p}", transform=ax.transAxes, ha="right",
+    ax.text(0.98, 0.98, f"$\\rho$ = {sign}{abs(r.statistic):.2f}\n{p}", transform=ax.transAxes, ha="right",
             va="top", fontsize=8, color=st.INK)
     st.despine(ax)
 
@@ -114,9 +114,9 @@ def panel_violin(ax, d, col, scale, ylabel, ylim):
     ax.set_xlabel("Share of 2020 surface\nadded after 2000 (%)")
     ax.set_ylabel(ylabel)
     r = stats.spearmanr(d.recent, d[col])
-    pv = "P < 10$^{-64}$" if r.pvalue < 1e-64 else f"P = {r.pvalue:.3f}"
+    pv = "$P$ < 10$^{-64}$" if r.pvalue < 1e-64 else f"$P$ = {r.pvalue:.3f}"
     sign = "\u2212" if r.statistic < 0 else ""
-    ax.text(0.98, 0.02, f"ρ = {sign}{abs(r.statistic):.2f}\n{pv}", transform=ax.transAxes, ha="right",
+    ax.text(0.98, 0.02, f"$\\rho$ = {sign}{abs(r.statistic):.2f}\n{pv}", transform=ax.transAxes, ha="right",
             va="bottom", fontsize=8, color=st.INK)
     st.despine(ax)
 
@@ -139,9 +139,9 @@ def panel_hex(ax, d, col, scale, ylabel, ylim):
     ax.set_xlabel("Share of 2020 surface\nadded after 2000 (%)")
     ax.set_ylabel(ylabel)
     r = stats.spearmanr(d.recent, d[col])
-    pv = "P < 10$^{-64}$" if r.pvalue < 1e-64 else f"P = {r.pvalue:.3f}"
+    pv = "$P$ < 10$^{-64}$" if r.pvalue < 1e-64 else f"$P$ = {r.pvalue:.3f}"
     sign = "\u2212" if r.statistic < 0 else ""
-    ax.text(0.98, 0.98, f"ρ = {sign}{abs(r.statistic):.2f}\n{pv}", transform=ax.transAxes, ha="right",
+    ax.text(0.98, 0.98, f"$\\rho$ = {sign}{abs(r.statistic):.2f}\n{pv}", transform=ax.transAxes, ha="right",
             va="top", fontsize=8, color=st.INK, bbox=None)
     st.despine(ax)
 
@@ -194,7 +194,7 @@ def figure(name="figure_recency_rarity_v2", style="line"):
         ax.plot([x0, 64.5], [y0, ty], color=st.MUTED, lw=0.5, zorder=1)
         ax.text(65.2, ty, NAMES[code], fontsize=8, color=st.INK, va="center", ha="left", zorder=4)
     rho = stats.spearmanr(c.recent, c.rpk)
-    ax.text(0.98, 0.98, "ρ = \u2212%.2f\nP = %.1f × 10$^{-5}$" % (abs(rho.statistic), rho.pvalue * 1e5),
+    ax.text(0.98, 0.98, "$\\rho$ = \u2212%.2f\n$P$ = %.1f × 10$^{-5}$" % (abs(rho.statistic), rho.pvalue * 1e5),
             transform=ax.transAxes, ha="right", va="top", fontsize=8, color=st.INK)
     ax.set_xlabel("Share of 2020 surface\nadded after 2000 (%)")
     ax.set_ylabel("Rarity-weighted intensity\n(10$^{-5}$ km$^{-2}$)")

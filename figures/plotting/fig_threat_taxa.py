@@ -1,4 +1,4 @@
-"""A third of the world's threatened land vertebrates exposed to tropical urbanization
+"""The geography of threatened species exposure to tropical urban growth
 
 Author: Rakibul Ahasan
 """
@@ -126,7 +126,7 @@ def panel_frac(ax, s):
 def panel_taxon_frac(ax, s):
     from scipy.stats import gaussian_kde
     rng = np.random.default_rng(5)
-    cols = ["#7E9C6B", "#A3875E", "#8B7BA8", "#5F86A8"]
+    cols = ["#009E73", "#0072B2", "#CC79A7", "#56B4E9"]
     for i, ((tx, tl), c) in enumerate(zip(TAXA, cols)):
         v = s[s.taxon == tx].frac.to_numpy()
         lv = np.log10(np.clip(v, 1e-4, None))
@@ -154,7 +154,8 @@ def panel_range_scatter(ax, s):
         ax.scatter(s.range[m], s.frac[m], s=3.0, color=PCOL[c], alpha=0.75, lw=0, rasterized=True)
     from scipy.stats import spearmanr
     rho = spearmanr(np.log10(s.range), np.log10(s.frac.clip(1e-6))).correlation
-    ax.text(0.97, 0.95, f"Spearman ρ = {rho:.2f}", transform=ax.transAxes, ha="right", va="top", fontsize=8)
+    ax.text(0.97, 0.95, f"Spearman $\\rho$ = {rho:.2f}".replace("-", "\u2212"), transform=ax.transAxes, ha="right",
+            va="top", fontsize=8)
     ax.set_xscale("log"); ax.set_yscale("log"); ax.set_ylim(1e-6, 100)
     ax.set_yticks([1e-6, 1e-4, 1e-2, 1, 100])
     ax.set_xlabel("Global range (km²)")

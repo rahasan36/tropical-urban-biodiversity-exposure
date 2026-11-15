@@ -1,4 +1,4 @@
-"""A third of the world's threatened land vertebrates exposed to tropical urbanization
+"""The geography of threatened species exposure to tropical urban growth
 
 Author: Rakibul Ahasan
 """
@@ -14,7 +14,7 @@ import tropics_surfaces as sf
 import tropics_frame as tf
 import tropics_basemap as bm
 
-RICH_RAMP = ["#EDF1EC", "#CFE0D2", "#A8CCB5", "#7DB296", "#52947C", "#2E6F5B"]
+RICH_RAMP = ["#F2EEF6", "#DCD0E8", "#BFA9D6", "#9C7DC0", "#7651A5", "#4E2A84"]
 URBAN = "#C24A10"
 URBAN_GATE = 1.0
 COAST = "#A8A49F"
@@ -119,7 +119,8 @@ def _window(arr, deg, lon0, lon1, lat0, lat1):
     return arr[r0:r1, c0:c1]
 
 
-def region_panel(ax, box, rich, added, breaks, show_scale=True):
+def region_panel(ax, box, rich, added, breaks, show_scale=True, scale_side="right",
+                 corners=False):
     name, lon0, lon1, lat0, lat1, *rest = box
     km = rest[0] if rest else 500
     ext = (lon0, lon1, lat0, lat1)
@@ -144,8 +145,13 @@ def region_panel(ax, box, rich, added, breaks, show_scale=True):
     for sp in ax.spines.values():
         sp.set_color("#B9B6B1"); sp.set_linewidth(0.5)
     if show_scale:
-        tf.scale_bar(ax, lon0, lon1, lat0, lat1, km=km, x_frac=0.56)
-        tf.north_arrow(ax, lon0, lon1, lat0, lat1, x_frac=0.94, y_frac=0.075)
+        bar = km / (111.32 * np.cos(np.radians(0.5 * (lat0 + lat1)))) / (lon1 - lon0)
+        bx = 0.06 if scale_side == "left" else max(0.04, 0.86 - bar)
+        nx = bx + bar + 0.08 if scale_side == "left" else 0.94
+        tf.scale_bar(ax, lon0, lon1, lat0, lat1, km=km, x_frac=bx)
+        tf.north_arrow(ax, lon0, lon1, lat0, lat1, x_frac=nx, y_frac=0.075)
+    if corners:
+        tf.corner_labels(ax, lon0, lon1, lat0, lat1)
     return ax
 
 
@@ -200,6 +206,28 @@ def _key(fig, rect, breaks, title):
     return cax
 
 
+def _inmap_keys(ax, bw, bh, pt=7.0):
+    from matplotlib.colorbar import ColorbarBase
+    from matplotlib.ticker import NullLocator
+    thick = 0.07 / bh
+    cax = ax.inset_axes([0.322, 0.19, 0.72 / bw, thick])
+    cmap, norm = _rich_cmap_norm()
+    cb = ColorbarBase(cax, cmap=cmap, norm=norm, orientation="horizontal",
+                      ticks=RICH_TICKS, extend="neither")
+    cax.xaxis.set_minor_locator(NullLocator())
+    cb.set_ticklabels([f"{t:g}" for t in RICH_TICKS])
+    cax.tick_params(labelsize=pt, length=1.5, width=0.4, colors=st.INK, pad=1.0)
+    cb.outline.set_linewidth(0.4)
+    cax.annotate("Narrow-range\nspecies", xy=(0.0, 1.0), xycoords="axes fraction",
+                 xytext=(0, 2.0), textcoords="offset points", ha="left",
+                 va="bottom", fontsize=pt, color=st.INK, linespacing=1.1)
+    sw = ax.inset_axes([0.645, 0.19, 0.20 / bw, thick])
+    sw.add_patch(Rectangle((0, 0), 1, 1, facecolor=URBAN, edgecolor="none"))
+    sw.set_xlim(0, 1); sw.set_ylim(0, 1); sw.axis("off")
+    ax.text(0.645 + 0.26 / bw, 0.19 + thick / 2, "Urban land added", transform=ax.transAxes,
+            ha="left", va="center", fontsize=pt, color=st.INK, zorder=10)
+
+
 def _band_panel(ax, rich, added, breaks):
     import tropics_main_figures as f4
     import tropics_bandmaps as m2
@@ -216,7 +244,7 @@ def _band_panel(ax, rich, added, breaks):
 
 
 def narrow_range_figure(name="figure8_narrow_regions_v3", regions=None,
-                        cols=None):
+                        cols=None, inmap_keys=False):
     import tropics_main_figures as f4
     import tropics_panels as tp
     st.apply_rc()
@@ -226,13 +254,13 @@ def narrow_range_figure(name="figure8_narrow_regions_v3", regions=None,
     breaks = _rich_breaks(rich)
 
     W = tp.PAGE_W
-    ML, MR = 0.08, 0.08
-    gap = 0.14
+    ML, MR = 0.20, 0.08
+    gap = 0.17
     live = W - ML - MR
     ncol = cols or (2 if len(regions) == 4 else len(regions))
     nrow = int(np.ceil(len(regions) / ncol))
     if ncol >= 4:
-        gap = 0.10
+        gap = 0.17
     pw = (live - (ncol - 1) * gap) / ncol
     ph = pw * (0.70 if ncol == 2 else 0.86)
     row_gap = 0.34
@@ -247,8 +275,10 @@ def narrow_range_figure(name="figure8_narrow_regions_v3", regions=None,
     else:
         band_h = band_w * (2 * BAND_LAT) / (tf.LON1 - tf.LON0)
 
-    mid0 = 0.40 if f4._is_robin() else 0.52
-    head, mid, key_h, foot = 0.30, mid0 + 0.14 * (head_lines - 1), 0.56, 0.14
+    mid0 = (0.40 if f4._is_robin() else 0.52) + 0.14
+    head, mid, key_h, foot = 0.30, mid0 + 0.14 * (head_lines - 1), 0.68, 0.14
+    if inmap_keys:
+        key_h = 0.0
     row_gap = row_gap + 0.14 * (head_lines - 1)
     rows_h = nrow * ph + (nrow - 1) * row_gap
     fig_h = head + band_h + mid + rows_h + key_h + foot
@@ -261,6 +291,11 @@ def narrow_range_figure(name="figure8_narrow_regions_v3", regions=None,
         ax.set_position([band_ML / W, (fig_h - head - band_h) / fig_h,
                          band_w / W, band_h / fig_h])
     _band_panel(ax, rich, added, breaks)
+    if f4._is_robin():
+        tf.robinson_degree_labels(ax, lat_side="right", lat_inside=True)
+    else:
+        tf.band_degree_labels(ax, lons=list(range(-120, 181, 30)),
+                              lat_side="right", lat_inside=True)
     fig.text(band_ML / W, 1 - 0.055 / fig_h, "a", fontsize=st.MIN_PT + 1,
              fontweight="bold", va="top", ha="left", color=st.INK)
 
@@ -271,7 +306,7 @@ def narrow_range_figure(name="figure8_narrow_regions_v3", regions=None,
         x = ML + c * (pw + gap)
         y = top - (r + 1) * ph - r * row_gap
         a = fig.add_axes([x / W, y / fig_h, pw / W, ph / fig_h])
-        region_panel(a, box, rich, added, breaks)
+        region_panel(a, box, rich, added, breaks, corners=True)
         lab = _wrap_name(box[0], title_lim)
         if head_lines == 2 and "\n" not in lab:
             lab = lab + "\n"
@@ -280,7 +315,10 @@ def narrow_range_figure(name="figure8_narrow_regions_v3", regions=None,
                ha="left", va="bottom", color=st.INK, linespacing=1.25)
         f4._region_outline(ax, box, "bcdefg"[i])
 
-    _key(fig, [ML / W, (foot + 0.06) / fig_h, (live * 0.62) / W,
-               (key_h - 0.16) / fig_h], breaks,
-         "Narrow-range species with a mapped range in the cell")
+    if inmap_keys:
+        _inmap_keys(ax, band_w, band_h)
+    else:
+        _key(fig, [ML / W, (foot + 0.06) / fig_h, (live * 0.62) / W,
+                   (key_h - 0.16) / fig_h], breaks,
+             "Narrow-range species with a mapped range in the cell")
     return tp.save(fig, name)

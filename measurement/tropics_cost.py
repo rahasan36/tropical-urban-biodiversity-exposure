@@ -1,4 +1,4 @@
-"""A third of the world's threatened land vertebrates exposed to tropical urbanization
+"""The geography of threatened species exposure to tropical urban growth
 
 Author: Rakibul Ahasan
 """
@@ -95,16 +95,13 @@ def _keep(df):
 
 def run_pass(budget_s=150, verbose=True):
     cells, cities = load_city_geometry()
-    cell_tree, city_tree = build_trees(cells, cities)
-    cell_city = cells.city_id.to_numpy()
-    cell_conv = cells.conv_km2.to_numpy()
+    _cell_tree, city_tree = build_trees(cells, cities)
     city_ids_arr = cities.city_id.to_numpy()
     n_city = int(cities.city_id.max())
     buf_deg = SETTING_BUFFER_KM / 111.32
 
     state, sp_index, sp_meta = {}, {}, {}
     sp_area = []
-    pair_sp, pair_city, pair_conv = [], [], []
     set_sp, set_city = [], []
     if PAIRS_PATH.exists():
         z = np.load(PAIRS_PATH, allow_pickle=False)
@@ -112,8 +109,6 @@ def run_pass(budget_s=150, verbose=True):
         sp_index = json.loads(str(z["sp_index"]))
         sp_meta = json.loads(str(z["sp_meta"]))
         sp_area = list(z["sp_area"])
-        pair_sp = [z["pair_sp"]]; pair_city = [z["pair_city"]]
-        pair_conv = [z["pair_conv"]]
         set_sp = [z["set_sp"]]; set_city = [z["set_city"]]
 
     def sp_slot(sp):
@@ -124,22 +119,17 @@ def run_pass(budget_s=150, verbose=True):
             sp_area.append(0.0)
         return i
 
-    open_ = dict(sp=None, i=-1, start=0, area=0.0, cells=[], near=[])
+    open_ = dict(sp=None, i=-1, start=0, area=0.0, near=[])
 
     def flush_open():
         if open_["sp"] is None:
             return
         sp_area[open_["i"]] += open_["area"]
-        nz, vals = union_converted(open_["cells"], cell_city, cell_conv, n_city)
-        if nz.size:
-            pair_sp.append(np.full(nz.size, open_["i"], np.int32))
-            pair_city.append(nz)
-            pair_conv.append(vals.astype(np.float32))
         if open_["near"]:
             u = np.unique(np.concatenate(open_["near"]))
             set_sp.append(np.full(u.size, open_["i"], np.int32))
             set_city.append(u.astype(np.int32))
-        open_.update(sp=None, i=-1, area=0.0, cells=[], near=[])
+        open_.update(sp=None, i=-1, area=0.0, near=[])
 
     t0 = time.time()
     stop = False
@@ -181,9 +171,6 @@ def run_pass(budget_s=150, verbose=True):
                 minx, miny, maxx, maxy = shapely.bounds(g)
                 if maxy < -TROPIC_LAT - buf_deg or miny > TROPIC_LAT + buf_deg:
                     continue
-                idx = cell_tree.query(g, predicate="intersects")
-                if idx.size:
-                    open_["cells"].append(idx.astype(np.int32))
                 near = city_tree.query(g, predicate="dwithin", distance=buf_deg)
                 if near.size:
                     open_["near"].append(city_ids_arr[near].astype(np.int32))
@@ -198,23 +185,12 @@ def run_pass(budget_s=150, verbose=True):
             flush_open()
             state[key] = total
     if stop:
-        open_.update(sp=None, i=-1, area=0.0, cells=[], near=[])
+        open_.update(sp=None, i=-1, area=0.0, near=[])
 
     def cat_(parts, dt):
         return np.concatenate(parts) if parts else np.zeros(0, dt)
 
-    ps = cat_(pair_sp, np.int32); pc = cat_(pair_city, np.int32)
-    pv = cat_(pair_conv, np.float32)
     ss = cat_(set_sp, np.int32); sc = cat_(set_city, np.int32)
-    if ps.size:
-        k = ps.astype(np.int64) * (n_city + 1) + pc
-        o = np.argsort(k, kind="stable"); k, ps, pc, pv = k[o], ps[o], pc[o], pv[o]
-        first = np.r_[True, k[1:] != k[:-1]]
-        grp = np.cumsum(first) - 1
-        out = np.zeros(int(grp[-1]) + 1, np.float64)
-        np.maximum.at(out, grp, pv.astype(np.float64))
-        pv = out.astype(np.float32)
-        ps, pc = ps[first], pc[first]
     if ss.size:
         k = ss.astype(np.int64) * (n_city + 1) + sc
         u = np.unique(k)
@@ -224,8 +200,7 @@ def run_pass(budget_s=150, verbose=True):
     SCRATCH.mkdir(parents=True, exist_ok=True)
     tmp_path = PAIRS_LIVE.with_suffix(".tmp.npz")
     np.savez_compressed(
-        tmp_path, pair_sp=ps, pair_city=pc, pair_conv=pv,
-        set_sp=ss, set_city=sc, sp_area=np.asarray(sp_area, np.float64),
+        tmp_path, set_sp=ss, set_city=sc, sp_area=np.asarray(sp_area, np.float64),
         state=json.dumps(state), sp_index=json.dumps(sp_index),
         sp_meta=json.dumps(sp_meta))
     import os
@@ -242,7 +217,42 @@ def run_pass(budget_s=150, verbose=True):
         PAIRS_FINAL.parent.mkdir(parents=True, exist_ok=True)
         shutil.copyfile(PAIRS_LIVE, PAIRS_FINAL)
     return dict(features_remaining=int(remaining), species_seen=len(sp_index),
-                pairs=int(pv.size), setting_pairs=int(ss.size))
+                setting_pairs=int(ss.size))
+
+
+def merge_overlaps(key="30:centroid"):
+    """Add the converted area of every species in every agglomeration.
+
+    The converted area is measured on the range cache at full source
+    resolution: the union of all parts of a species' tropical range is tested
+    against the centres of the 30 arcsecond cells, so a species whose range is
+    split across several features is charged once for each cell it covers.
+    """
+    import resolution_resume as rr
+    import tropics_rangecache as rc
+    pairs, _meta = rr.load_slices(key)
+    sp, _parts = rc.load_index()
+    z = dict(np.load(PAIRS_FINAL, allow_pickle=False))
+    idx = json.loads(str(z["sp_index"]))
+    sp_id = sp.sp_id.to_numpy()[pairs.sp_i.to_numpy()]
+    missing = sorted({s for s in sp_id if s not in idx})
+    if missing:
+        raise SystemExit(f"{len(missing)} cached species are not in the pair "
+                         f"file index (first {missing[:3]})")
+    ps = np.array([idx[s] for s in sp_id], np.int32)
+    pc = pairs.city_id.to_numpy().astype(np.int32)
+    pv = pairs.conv_km2.to_numpy().astype(np.float32)
+    n_city = int(pc.max()) if pc.size else 0
+    o = np.argsort(ps.astype(np.int64) * (n_city + 1) + pc, kind="stable")
+    z.update(pair_sp=ps[o], pair_city=pc[o], pair_conv=pv[o])
+    tmp_path = PAIRS_FINAL.with_suffix(".tmp.npz")
+    np.savez_compressed(tmp_path, **z)
+    import os, shutil
+    os.replace(tmp_path, PAIRS_FINAL)
+    if PAIRS_LIVE.exists():
+        shutil.copyfile(PAIRS_FINAL, PAIRS_LIVE)
+    return dict(pairs=int(ps.size), species=int(np.unique(ps).size),
+                converted_km2=float(pv.astype(np.float64).sum()))
 
 
 if __name__ == "__main__":

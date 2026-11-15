@@ -1,4 +1,4 @@
-"""A third of the world's threatened land vertebrates exposed to tropical urbanization
+"""The geography of threatened species exposure to tropical urban growth
 
 Author: Rakibul Ahasan
 """
@@ -9,11 +9,12 @@ from matplotlib.patches import Rectangle
 import tropics_style as st
 import tropics_panels as tp
 import tropics_robinson as rb
+import tropics_frame as tf
 import fig_bivariate as fb
 from tropics_config import MOSAIC_LAT_TOP, DELIN_DEG
 
-BLUES = ["#E3EEF8", "#BBD7EE", "#8FBDE4", "#6FA6D8", "#4A86C1"]
-ORANGES = ["#FDF0C2", "#F9D35B", "#F4AE3D", "#EE7D1E", "#C45F10"]
+BLUES = ["#E6F2FA", "#BFDDF3", "#8FC6EC", "#56B4E9", "#2B88C2"]
+ORANGES = ["#F7E1EE", "#EDB3D3", "#DD72AE", "#C51B7D", "#8E0F5A"]
 SECTORS = [("Americas", -180, -30), ("Africa and Arabia", -30, 60), ("South Asia", 60, 92),
            ("Southeast Asia and Oceania", 92, 180)]
 
@@ -106,16 +107,17 @@ def figure(name="figure_bivariate_decomp_v3", f=30, lat_view=27.0, mode=None):
     else:
         sh = sh0
     low_h = sh + 0.10
-    H = map_h + 0.42 + low_h + 0.55
+    H = map_h + 0.42 + low_h + 0.55 + 0.12
     fig = plt.figure(figsize=(W, H))
     ax = fig.add_axes([KW / W, 1 - map_h / H, map_w / W, map_h / H])
     draw(ax, rgba, B, f, lat_view)
+    tf.robinson_degree_labels(ax, lat_side="right", lat_inside=True)
     fig.text(0.02 / W, 1 - 0.02 / H, "a", fontsize=st.MIN_PT + 1, fontweight="bold", va="top")
     fig.text(0.12 / W, 1 - 0.16 / H, "Impervious surface\nper 0.25° cell", fontsize=6.5,
              va="top", linespacing=1.1)
     fb.key_square(fig, [0.40 / W, 1 - 1.12 / H, 0.56 / W, 0.56 / H], bb, ab)
 
-    yb = 0.62
+    yb = 0.74
     for i, (V, ramp, lab, letter) in enumerate(((B, BLUES, "Impervious by 2000 (km² per cell)", "b"),
                                                 (A, ORANGES, "Added 2000–2020 (km² per cell)", "c"))):
         rg, br = single(V, ok, ramp)
@@ -128,13 +130,15 @@ def figure(name="figure_bivariate_decomp_v3", f=30, lat_view=27.0, mode=None):
         elif mode == "tall":
             sa = fig.add_axes([sx / W, (yb + low_h - sh) / H, sw / W, sh / H])
             draw(sa, rg, V, f, lat_small, borders=False)
+            tf.robinson_degree_labels(sa, lons=[-60, 0, 60, 120], lat_side="right",
+                                      lat_inside=True)
         else:
             sa = fig.add_axes([sx / W, (yb + low_h - sh) / H, sw / W, sh / H])
             draw(sa, rg, V, f, lat_view, borders=False)
         fig.text(sx / W, (yb + low_h + 0.06) / H, letter, fontsize=st.MIN_PT + 1, fontweight="bold", va="bottom")
         fig.text((sx + 0.15) / W, (yb + low_h + 0.06) / H, lab.split(" (")[0], fontsize=8, fontweight="bold",
                  va="bottom")
-        strip_key(fig, [(sx + 0.15) / W, (yb + low_h - sh - 0.20) / H, (sw - 0.30) / W, 0.09 / H], ramp, br,
+        strip_key(fig, [(sx + 0.15) / W, (yb + low_h - sh - 0.32) / H, (sw - 0.30) / W, 0.09 / H], ramp, br,
                   "km² per 0.25° cell")
 
     lon = -180.0 + (np.arange(B.shape[1]) + 0.5) * f * DELIN_DEG

@@ -1,4 +1,4 @@
-"""A third of the world's threatened land vertebrates exposed to tropical urbanization
+"""The geography of threatened species exposure to tropical urban growth
 
 Author: Rakibul Ahasan
 """
@@ -16,7 +16,7 @@ a, b, v = a[m], b[m], V[m, 4]
 per = V[:, :4].sum(1)
 R = Path(t.INTERIM_DIR) / "restest" / "30_centroid"
 rs, rc_, rv = [], [], []
-for f in sorted(R.glob("slice_*.npz")):
+for f in sorted(R.glob("*.npz")):
     with np.load(f) as q:
         rs.append(q["sp_i"]); rc_.append(q["city_id"]); rv.append(q["conv_km2"])
 rs, rc_, rv = map(np.concatenate, (rs, rc_, rv))

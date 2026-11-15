@@ -1,4 +1,4 @@
-"""A third of the world's threatened land vertebrates exposed to tropical urbanization
+"""The geography of threatened species exposure to tropical urban growth
 
 Author: Rakibul Ahasan
 """
@@ -55,14 +55,17 @@ def richness_surfaces(deg=RICH_DEG, budget_s=None, verbose=True):
     SURF_DIR.mkdir(parents=True, exist_ok=True)
     path = SURF_DIR / f"richness_{int(deg*100):03d}.npz"
     rows, cols = _grid(deg)
+    import tropics_assemble as ta
+    import tropics_delin as td
     sp, parts = rc.load_index()
-    sp["category"] = sp.category.astype(str).str.upper()
+    sp = ta.merged_categories(sp)
     keep = ~sp.taxon.astype(str).str.upper().isin(
         [t.upper() for t in EXCLUDED_TAXA]).to_numpy()
     is_threat = sp.category.isin(THREAT_CATS).to_numpy() & keep
     pool = (sp.range_km2.to_numpy() > 0) & keep
     thr = float(np.percentile(sp.range_km2.to_numpy()[pool], NARROW_RANGE_PCTL))
     is_narrow = pool & (sp.range_km2.to_numpy() <= thr)
+    rng_all = sp.range_km2.to_numpy()
 
     if path.exists() and path.stat().st_size:
         z = np.load(path, allow_pickle=False)
@@ -75,15 +78,39 @@ def richness_surfaces(deg=RICH_DEG, budget_s=None, verbose=True):
         acc["rarity"] = np.zeros((rows, cols), np.float32)
         done = 0
 
-    part_sp, part_off, part_len = parts
+    part_sp, part_off, part_len = td.species_order(parts)
     t0 = time.time()
-    seen = set()
     n_new = 0
-    for start in range(done, part_sp.size, 1500):
-        stop = min(start + 1500, part_sp.size)
-        sub = (part_sp[start:stop], part_off[start:stop], part_len[start:stop])
+
+    def add(key, pieces):
+        R0 = min(q[0] for q in pieces); R1 = max(q[1] for q in pieces)
+        C0 = min(q[2] for q in pieces); C1 = max(q[3] for q in pieces)
+        m = np.zeros((R1 - R0, C1 - C0), bool)
+        for r0, r1, c0, c1, mm in pieces:
+            m[r0 - R0:r1 - R0, c0 - C0:c1 - C0] |= mm
+        if not m.any():
+            return 0
+        win = (slice(R0, R1), slice(C0, C1))
+        acc["all"][win] += m
+        if rng_all[key] > 0:
+            acc["rarity"][win] += (m / rng_all[key]).astype(np.float32)
+        if is_threat[key]:
+            acc["threat"][win] += m
+        if is_narrow[key]:
+            acc["narrow"][win] += m
+        return 1
+
+    while done < part_sp.size:
+        stop = td._species_bounds(part_sp, done, 1500)
+        sub = (part_sp[done:stop], part_off[done:stop], part_len[done:stop])
+        cur, pieces = None, []
         for i, g in zip(*_read_batch(sub)):
-            if g is None or g.is_empty:
+            key = int(i)
+            if key != cur:
+                if pieces:
+                    n_new += add(cur, pieces)
+                cur, pieces = key, []
+            if not keep[key] or g is None or g.is_empty:
                 continue
             b = g.bounds
             if b[3] < LAT_BOT or b[1] > LAT_TOP:
@@ -102,20 +129,9 @@ def richness_surfaces(deg=RICH_DEG, budget_s=None, verbose=True):
                                         transform=tr, invert=True, all_touched=False)
             except Exception:
                 continue
-            if not m.any():
-                continue
-            key = int(i)
-            if not keep[key]:
-                continue
-            acc["all"][r0:r1, c0:c1] += m
-            rng = float(sp.range_km2.to_numpy()[key])
-            if rng > 0:
-                acc["rarity"][r0:r1, c0:c1] += (m / rng).astype(np.float32)
-            if is_threat[key]:
-                acc["threat"][r0:r1, c0:c1] += m
-            if is_narrow[key]:
-                acc["narrow"][r0:r1, c0:c1] += m
-            n_new += 1
+            pieces.append((r0, r1, c0, c1, m))
+        if pieces:
+            n_new += add(cur, pieces)
         done = stop
         if verbose:
             print(f"  {done}/{part_sp.size} parts  {time.time()-t0:.0f}s", flush=True)

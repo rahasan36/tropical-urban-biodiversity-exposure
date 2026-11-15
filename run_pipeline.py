@@ -1,4 +1,4 @@
-"""A third of the world's threatened land vertebrates exposed to tropical urbanization
+"""The geography of threatened species exposure to tropical urban growth
 
 Author: Rakibul Ahasan
 """
@@ -22,6 +22,8 @@ MEASUREMENT = [
     ("tropics_measure", "m.measure()"),
     ("tropics_rangecache", "m.build(budget_s=1e9)"),
     ("tropics_cost", "m.run_pass(budget_s=1e9)"),
+    ("resolution_resume", ["advance", "30:centroid", "1e9"]),
+    ("tropics_cost", "m.merge_overlaps()"),
     ("tropics_assemble", "m.build()"),
     ("tropics_setting", "m.build_neighbourhoods()"),
     ("tropics_setting", "m.run_pass(budget_s=1e9)"),
@@ -30,7 +32,6 @@ MEASUREMENT = [
     ("tropics_delin", ["finish"]),
     ("delineation_fixed", "m.main()"),
     ("setting_rebuild", "m.main()"),
-    ("birdlife_union", ["--budget", "1e9"]),
     ("tropics_form", "m.run(budget_s=1e9, want_habitat=False, tag='F')"),
     ("tropics_form", "m.run(budget_s=1e9)"),
     ("tropics_habpass", "m.run_cities(budget_s=1e9)"),
@@ -38,6 +39,7 @@ MEASUREMENT = [
     ("tropics_surfaces", "m.save_urban(); m.richness_surfaces()"),
     ("tropics_radius", "m.step(budget_s=1e9)"),
     ("tropics_radius", "m.write_taxon_settings()"),
+    ("tropics_radius", ["fits"]),
     *[("resolution_resume", ["advance", k, "1e9"]) for k in RESOLUTION_KEYS],
     *[("resolution_resume", ["finish", k]) for k in RESOLUTION_KEYS],
     ("resolution_test", []),
@@ -58,6 +60,10 @@ TEMPORAL = [
     ("temporal_size", []),
     ("temporal_subregion", ["run"]),
     ("temporal_species", []),
+    ("temporal_disagreement_check", []),
+    ("fig_threat_taxa", "m.compute()"),
+    ("fig_headline", "m.derive()"),
+    ("fig_deepening", "m.derive(); m.summary()"),
 ]
 
 ANALYSIS = [
@@ -75,6 +81,7 @@ ANALYSIS = [
     ("cf_boundary_check", ["chunk", "1", "100"]),
     ("cf_boundary_check", ["chunk", "2", "100"]),
     ("cf_boundary_check", ["aggregate"]),
+    ("cf_pool_bootstrap", ["1000"]),
     ("r2_components", []),
     ("landcover_disagreement", []),
     ("drivers", []),
@@ -83,8 +90,9 @@ ANALYSIS = [
     ("threshold_isolate", []),
     ("setting_definition_compare", []),
     ("species_ledger", []),
+    ("species_accounting_by_class", []),
+    ("residual_moran", []),
     ("weighting_vs_sample", []),
-    ("bird_union_effect", []),
     ("bird_sensitivity", []),
     ("species_concentration", "m.part2(); m.part2_validate(spec='A'); m.part2_validate(spec='B'); m.part2_contrasts(spec='B')"),
     ("region_overlap", []),

@@ -1,4 +1,4 @@
-"""A third of the world's threatened land vertebrates exposed to tropical urbanization
+"""The geography of threatened species exposure to tropical urban growth
 
 Author: Rakibul Ahasan
 """
@@ -12,28 +12,48 @@ INK, MUTED, FAINT, HAIR = "#1A1A1A", "#5A5A5A", "#C9C9C9", "#E6E6E6"
 SURFACE = "#FFFFFF"
 LAND, LAND_EDGE, SEA = "#F2F1EE", "#D6D4D0", "#FFFFFF"
 
-CAT = ["#2B62C4", "#C05A0F", "#0F8A6E", "#B0184E"]
+CAT = ["#0072B2", "#E69F00", "#009E73", "#CC79A7"]
 CAT_MARKERS = ["o", "s", "^", "D"]
-BLUE, ORANGE, TEAL, CRIMSON = CAT
+BLUE, ORANGE, TEAL, PINK = CAT
+CRIMSON = "#B0184E"
+OKABE_ITO = ["#E69F00", "#009E73", "#CC79A7", "#0072B2", "#D55E00", "#56B4E9"]
+REALM_COLOR = {"Indomalayan": "#0072B2", "Neotropic": "#E69F00",
+               "Afrotropic": "#009E73", "Australasia": "#CC79A7"}
+SET_COLOR = {"all": ("#555555", "#BBBBBB"), "threatened": ("#0072B2", "#9EC9E2"),
+             "narrow": ("#CC79A7", "#E8C3D8"), "rarity": ("#E69F00", "#F5D08A")}
 
 SEQ_BLUE = LinearSegmentedColormap.from_list(
     "seq_blue", ["#EDF2FC", "#C3D3F0", "#8FAEE4", "#5585D2", "#2B62C4", "#173F86"])
 SEQ_ORANGE = LinearSegmentedColormap.from_list(
     "seq_orange", ["#FCF0E6", "#F6D6B8", "#EDB07C", "#DC8640", "#C05A0F", "#7E3B08"])
-SEQ_GREEN = LinearSegmentedColormap.from_list(
-    "seq_green", ["#E9F5F1", "#BFE3D8", "#8ACCBA", "#46AC93", "#0F8A6E", "#0A5A48"])
+SEQ_PURPLE = LinearSegmentedColormap.from_list(
+    "seq_purple", ["#F2EEF6", "#DCD0E8", "#BFA9D6", "#9C7DC0", "#7651A5", "#4E2A84"])
+SEQ_GREEN = SEQ_PURPLE
 DIV = LinearSegmentedColormap.from_list(
     "div", ["#173F86", "#5585D2", "#C3D3F0", "#EEEDEA", "#F6D6B8", "#DC8640", "#7E3B08"])
 
 HABITAT_COLORS = {
-    "forest": "#1B6E4A", "shrub": "#8FA33C", "grass": "#D9B24C",
-    "sparse": "#D8C9A3", "wetland": "#3E8FA8", "cropland": "#C08A2E",
-    "impervious": "#8C6F84", "bare": "#BDB2A4", "water": "#5C8FC4",
+    "forest": "#117733", "shrub": "#999933", "grass": "#DDCC77",
+    "sparse": "#E5DEC8", "wetland": "#44AA99", "cropland": "#CC6677",
+    "impervious": "#882255", "bare": "#BBBBBB", "water": "#88CCEE",
 }
-FORM_COLORS = {"infill": "#2B62C4", "edge": "#C05A0F", "leapfrog": "#0F8A6E"}
+FORM_COLORS = {"infill": "#0072B2", "edge": "#E69F00", "leapfrog": "#CC79A7"}
 
 
-FONT_STACK = ["Arial", "Liberation Sans", "Helvetica", "Nimbus Sans", "DejaVu Sans"]
+def darker(color, f=0.28):
+    r, g, b = to_rgb(color)
+    return (r * (1 - f), g * (1 - f), b * (1 - f))
+
+
+def text_on(color):
+    def lin(c):
+        return c / 12.92 if c <= 0.04045 else ((c + 0.055) / 1.055) ** 2.4
+    r, g, b = (lin(c) for c in to_rgb(color))
+    L = 0.2126 * r + 0.7152 * g + 0.0722 * b
+    return "white" if (1.05 / (L + 0.05)) > ((L + 0.05) / 0.05) else INK
+
+
+FONT_STACK = ["Arial", "Helvetica"]
 MIN_PT = 8.0
 
 
@@ -58,8 +78,47 @@ def enforce_min_pt(min_pt=MIN_PT):
     FontProperties._min_pt_patched = True
 
 
+HELD = None
+
+
+def hold():
+    global HELD
+    HELD = []
+    return HELD
+
+
+def held(fig):
+    if HELD is None:
+        return False
+    HELD.append(fig)
+    return True
+
+
+def glyph_xheight():
+    import matplotlib._mathtext as mtx
+
+    def xheight(self, fontname, fontsize, dpi):
+        return self.get_metrics(fontname, mpl.rcParams["mathtext.default"], "x", fontsize, dpi).iceberg
+
+    mtx.TruetypeFonts.get_xheight = xheight
+
+
+def require_font():
+    from matplotlib import font_manager as fm
+    for name in FONT_STACK:
+        try:
+            fm.findfont(fm.FontProperties(family=name), fallback_to_default=False)
+            return name
+        except ValueError:
+            continue
+    raise RuntimeError("Figures require Arial or Helvetica. Install one of them, then clear the Matplotlib "
+                       "font cache (" + mpl.get_cachedir() + ") and rerun.")
+
+
 def apply_rc(min_pt=MIN_PT):
     enforce_min_pt(min_pt)
+    require_font()
+    glyph_xheight()
     mpl.rcParams.update({
         "figure.dpi": 130, "savefig.dpi": 300,
         "font.family": "sans-serif", "font.sans-serif": FONT_STACK,
@@ -74,6 +133,10 @@ def apply_rc(min_pt=MIN_PT):
         "text.color": INK, "legend.frameon": False, "legend.fontsize": 8,
         "savefig.facecolor": SURFACE, "figure.facecolor": SURFACE,
         "savefig.bbox": None,
+        "mathtext.fontset": "custom", "mathtext.rm": "sans",
+        "mathtext.it": "sans:italic", "mathtext.bf": "sans:bold",
+        "mathtext.sf": "sans", "mathtext.cal": "sans:italic",
+        "mathtext.default": "it",
     })
 
 

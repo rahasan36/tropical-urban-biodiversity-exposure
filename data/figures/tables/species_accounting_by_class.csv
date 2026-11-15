@@ -1,0 +1,6 @@
+Class,Species mapped,Threatened mapped,Threatened assessed,Species in pool,Threatened in pool,Narrow range in pool,"Threatened reached, within rule","Threatened reached, center rule","Threatened reached, touch rule",Median global range in pool (km2)
+Amphibia,7740,2696,2876,5795,1976,2871,558,613,667,5906.975111544247
+Reptilia,9927,1708,1848,7163,1146,2439,599,613,640,34570.875178224574
+Mammalia,5590,1242,1339,4129,885,682,619,630,636,189486.25654774648
+Aves,10973,1218,1256,9441,828,640,594,630,647,564852.4602072735
+Total,34230,6864,7319,26528,4835,6632,2370,2486,2590,104285.79263625896

@@ -1,4 +1,4 @@
-"""A third of the world's threatened land vertebrates exposed to tropical urbanization
+"""The geography of threatened species exposure to tropical urban growth
 
 Author: Rakibul Ahasan
 """
@@ -16,6 +16,8 @@ from tropics_config import TABLE_DIR, FIG_DIR
 
 
 def _save(fig, name):
+    if st.held(fig):
+        return fig
     for ext in ("png", "pdf"):
         fig.savefig(FIG_DIR / f"{name}.{ext}", dpi=300)
     plt.close(fig)
@@ -32,11 +34,11 @@ def main_figure(name="figure7_two_part_v4", spec="B"):
     L, R, BOT, TOP = 0.108, 0.605, 0.575, 0.095
     wd, ht = 0.350, 0.345
     pan = [
-        (L, BOT, d.p_occurrence, d.p_lo, d.p_hi, st.BLUE,
+        (L, BOT, d.p_occurrence, d.p_lo, d.p_hi, st.SET_COLOR["narrow"][0],
          "probability of any\nnarrow-range conversion", None, "a"),
-        (R, BOT, d.intensity_pos, d.intensity_pos_lo, d.intensity_pos_hi, st.ORANGE,
+        (R, BOT, d.intensity_pos, d.intensity_pos_lo, d.intensity_pos_hi, st.SET_COLOR["narrow"][0],
          "intensity given conversion\n(km$^2$ per km$^2$ added)", "log", "b"),
-        (L, TOP, d.combined, d.combined_lo, d.combined_hi, st.TEAL,
+        (L, TOP, d.combined, d.combined_lo, d.combined_hi, st.SET_COLOR["narrow"][0],
          "combined expectation\n(km$^2$ per km$^2$ added)", None, "c"),
     ]
     for left, bot, y, lo, hi, c, ylab, ysc, letter in pan:
@@ -107,7 +109,7 @@ def si_figure(name="figS14_concentration_v3"):
     ax.barh(yy, [r["rho"] for r in rows], height=0.62, color=st.BLUE, lw=0)
     ax.set_yticks(yy)
     ax.set_yticklabels([f"{r['range_lo']:,.0f}" for r in rows])
-    ax.set_xlabel("Spearman correlation within quintile")
+    ax.set_xlabel("Spearman correlation ($\\rho$) within quintile")
     ax.set_ylabel("lower edge of the range-size\nquintile (km$^2$)")
     st.despine(ax)
     ax.text(-0.245, 1.07, "b", transform=ax.transAxes, fontsize=9,

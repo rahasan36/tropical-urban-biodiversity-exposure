@@ -1,4 +1,4 @@
-"""A third of the world's threatened land vertebrates exposed to tropical urbanization
+"""The geography of threatened species exposure to tropical urban growth
 
 Author: Rakibul Ahasan
 """
@@ -39,7 +39,7 @@ def label_line(ax, x, y, text, fs=6.0, color=st.MUTED, dx=0.0, dy=0.0):
     ax.text(0.5 * (x[0] + x[1]) + dx, 0.5 * (y[0] + y[1]) + dy, text,
             rotation=scr, rotation_mode="anchor", fontsize=fs, color=color,
             ha="center", va="bottom", zorder=6)
-POS, NEG = "#0F8A6E", "#C05A0F"
+POS, NEG = "#0072B2", "#E69F00"
 
 
 PAGE_W = 7.0
@@ -145,6 +145,8 @@ def colorbar(fig, hb, ax, label="cities", loc=(0.60, 0.06), w=0.34, h=0.030):
 
 
 def save(fig, name):
+    if st.held(fig):
+        return fig
     FIG_DIR.mkdir(parents=True, exist_ok=True)
     for ext in ("png", "pdf"):
         fig.savefig(FIG_DIR / f"{name}.{ext}", dpi=400 if ext == "png" else None)
@@ -772,7 +774,7 @@ def fig_typology(name="fig_typology_v2"):
 
 
 REALMS = ["Indomalayan", "Neotropic", "Afrotropic", "Australasia"]
-REALM_COLORS = ["#B0184E", "#2B62C4", "#C05A0F", "#0F8A6E"]
+REALM_COLORS = [st.REALM_COLOR[r] for r in REALMS]
 
 
 def _violin(ax, groups, values, colors, log=True):

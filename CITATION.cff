@@ -1,19 +1,22 @@
 cff-version: 1.2.0
 message: "If you use this code, please cite it as below."
-title: "Code for: A third of the world's threatened land vertebrates exposed to tropical urbanization"
+title: "Code for: The geography of threatened species exposure to tropical urban growth"
 type: software
 authors:
   - family-names: Ahasan
     given-names: Rakibul
-    affiliation: "Esri, Redlands, CA, USA"
+    affiliation: "Department of Geography, Texas A&M University, College Station, TX, USA 77843; Environmental Systems Research Institute (Esri), Redlands, CA, USA 92373"
     orcid: "https://orcid.org/0000-0003-4772-8499"
   - family-names: Güneralp
     given-names: Burak
-    affiliation: "Department of Geography, Texas A&M University, College Station, TX, USA"
+    affiliation: "Department of Geography, Texas A&M University, College Station, TX, USA 77843"
     orcid: "https://orcid.org/0000-0002-5825-0630"
   - family-names: Chowdhury
     given-names: Shawan
     affiliation: "School of Biological Sciences, Monash University, Melbourne, VIC, Australia"
+  - family-names: Fitzgerald
+    given-names: Lee A.
+    affiliation: "Department of Ecology and Conservation Biology, Texas A&M University, College Station, TX, USA 77843"
 repository-code: "https://github.com/rahasan36/tropical-urban-biodiversity-exposure"
 license: CC-BY-NC-ND-4.0
 keywords:

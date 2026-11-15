@@ -1,4 +1,4 @@
-"""A third of the world's threatened land vertebrates exposed to tropical urbanization
+"""The geography of threatened species exposure to tropical urban growth
 
 Author: Rakibul Ahasan
 """
@@ -38,7 +38,7 @@ NODATA = "#DCDAD6"
 INSET_KM = 1800.0
 KM_PER_DEG_LAT = 110.57
 
-FRAME_COLORS = ["#2B62C4", "#C05A0F", "#0F8A6E", "#B0184E", "#7A3EAF", "#6E7B12"]
+FRAME_COLORS = ["#E69F00", "#009E73", "#CC79A7", "#0072B2", "#D55E00", "#56B4E9"]
 
 REGION_CENTERS = [
     ("Mesoamerica",     -93.5,  15.0, FRAME_COLORS[0]),
@@ -276,7 +276,9 @@ def _graticule(ax, lon_step=30, lat_step=20):
     for y, lab in ((TROPIC_LAT, "23.4°N"), (-TROPIC_LAT, "23.4°S")):
         ax.axhline(y, color="#8E8B86", lw=0.5, ls=(0, (5, 4)), zorder=6)
         ax.text(LON1 - 1.2, y + 0.6, lab, fontsize=5.6, ha="right", va="bottom",
-                color="#8E8B86", zorder=7)
+                color=DEG_COLOR, zorder=7)
+    ax.text(LON1 - 1.2, 0.6, "0°", fontsize=5.6, ha="right", va="bottom",
+            color=DEG_COLOR, zorder=7)
 
 
 def scale_bar(ax, lon0, lon1, lat0, lat1, km=None, frac=0.30, x_frac=0.055):
@@ -325,20 +327,25 @@ LEGEND_IN_MAP = (0.573, 0.035)
 def band_figure(width_in=LIVE_W, title=None, panel_letter=None, n_inset=6,
                 inset_cols=6, footer_in=0.80, subtitle=None, scale_y_in=None,
                 panel_scales=True, legend_in_map=False, land=None,
-                inset_in=1.15, regions=None):
+                inset_in=1.15, regions=None, degrees=False, col_gap=None):
     st.apply_rc()
     left, right = (0.014, 0.012) if legend_in_map else (0.030, 0.012)
     if legend_in_map and footer_in > 0.30:
         footer_in = 0.14
+    if degrees:
+        footer_in = max(footer_in, 0.24)
     map_w = width_in * (1 - left - right)
     map_h = map_w * (LAT1 - LAT0) / (LON1 - LON0)
     head = 0.16 if (title or panel_letter) else 0.10
     gap = 0.34
-    col_gap, row_gap, label_h = 0.085, 0.20, 0.150
+    col_gap, row_gap, label_h = (0.085 if col_gap is None else col_gap), 0.20, 0.150
 
     rows = int(np.ceil(n_inset / inset_cols)) if n_inset else 0
     pw = min((map_w - (inset_cols - 1) * col_gap) / inset_cols, inset_in) if n_inset else 0
     ph = pw
+    if degrees and n_inset:
+        pw = min(pw, (map_w - 0.34 - (inset_cols - 1) * col_gap) / inset_cols)
+        ph = pw
     grid_w = inset_cols * pw + (inset_cols - 1) * col_gap if n_inset else 0
     x_grid = left * width_in + (map_w - grid_w) / 2
     grid_h = (rows * (ph + label_h) + (rows - 1) * row_gap) if rows else 0
@@ -391,6 +398,8 @@ def band_figure(width_in=LIVE_W, title=None, panel_letter=None, n_inset=6,
                      fontsize=7.0, fontweight="bold", color=col, ha="right",
                      va="top", zorder=9,
                      bbox=dict(fc="white", ec="none", alpha=0.8, pad=1.2))
+            if degrees:
+                corner_labels(iax, lo, hi, la, lb)
             insets.append((iax, (lo, hi, la, lb)))
         fig._frame = dict(w=width_in, h=fig_h, left=left, map_h=map_h, head=head)
         if not panel_scales:
@@ -400,6 +409,8 @@ def band_figure(width_in=LIVE_W, title=None, panel_letter=None, n_inset=6,
                              label=f"500 km, every inset panel "
                                    f"{INSET_KM:,.0f} \u00d7 {INSET_KM:,.0f} km")
     fig._frame = dict(w=width_in, h=fig_h, left=left, map_h=map_h, head=head)
+    if degrees:
+        band_degree_labels(ax, lons=list(range(-120, 181, 30)), lat_side=None)
     return fig, ax, insets
 
 
@@ -427,7 +438,145 @@ def footer_legend(fig, blocks, x_in=None, y_in=0.30, sw_in=0.285, sh_in=0.082,
     return x0
 
 
+DEG_COLOR = "#555555"
+DEG_PT = 7.0
+
+
+def fmt_lon(v, nd=1):
+    v = ((float(v) + 180.0) % 360.0) - 180.0
+    if abs(v) < 0.5 * 10 ** -nd:
+        return f"{0:.{nd}f}\u00b0"
+    if abs(abs(v) - 180.0) < 0.5 * 10 ** -nd:
+        return f"{180:.{nd}f}\u00b0"
+    return f"{abs(v):.{nd}f}\u00b0{'W' if v < 0 else 'E'}"
+
+
+def fmt_lat(v, nd=1):
+    v = float(v)
+    if abs(v) < 0.5 * 10 ** -nd:
+        return f"{0:.{nd}f}\u00b0"
+    return f"{abs(v):.{nd}f}\u00b0{'S' if v < 0 else 'N'}"
+
+
+def corner_labels(ax, lon0, lon1, lat0, lat1, fs=DEG_PT, color=DEG_COLOR,
+                  pad=1.6, lon1_at="bottom", lat1_at="left", lat0_at="left",
+                  nd=1):
+    from matplotlib.transforms import offset_copy
+    fig = ax.figure
+    T = ax.transAxes
+
+    def at(dx, dy):
+        return offset_copy(T, fig=fig, x=dx, y=dy, units="points")
+
+    kw = dict(fontsize=fs, color=color, zorder=12, clip_on=False)
+    out = []
+    out.append(ax.text(0.0, 0.0, fmt_lon(lon0, nd), transform=at(0, -pad),
+                       ha="left", va="top", **kw))
+    if lon1_at == "top":
+        out.append(ax.text(1.0, 1.0, fmt_lon(lon1, nd), transform=at(0, pad),
+                           ha="right", va="bottom", **kw))
+    else:
+        out.append(ax.text(1.0, 0.0, fmt_lon(lon1, nd), transform=at(0, -pad),
+                           ha="right", va="top", **kw))
+    if lat0_at == "left":
+        out.append(ax.text(0.0, 0.0, fmt_lat(lat0, nd), transform=at(-pad, 0),
+                           ha="left", va="bottom", rotation=90,
+                           rotation_mode="anchor", **kw))
+    else:
+        out.append(ax.text(1.0, 0.0, fmt_lat(lat0, nd), transform=at(pad, 0),
+                           ha="left", va="top", rotation=90,
+                           rotation_mode="anchor", **kw))
+    if lat1_at == "right":
+        out.append(ax.text(1.0, 1.0, fmt_lat(lat1, nd), transform=at(pad, 0),
+                           ha="right", va="top", rotation=90,
+                           rotation_mode="anchor", **kw))
+    else:
+        out.append(ax.text(0.0, 1.0, fmt_lat(lat1, nd), transform=at(-pad, 0),
+                           ha="right", va="bottom", rotation=90,
+                           rotation_mode="anchor", **kw))
+    return out
+
+
+def band_degree_labels(ax, project=None, lat_of_y=None, lons=None,
+                       lats=(23.4394, 0.0, -23.4394), fs=DEG_PT,
+                       color=DEG_COLOR, pad=1.6, bottom=True, lat_side="left",
+                       lat_inside=False, lon_inside=False, lat_offset=0.0,
+                       skip_lons=(), nd_lat=1, x_margin=0.03, lat_va="bottom"):
+    import matplotlib.patheffects as _pe
+    from matplotlib.transforms import blended_transform_factory, offset_copy
+    fig = ax.figure
+    project = project or (lambda lo, la: (np.asarray(lo, float),
+                                          np.asarray(la, float)))
+    lat_of_y = lat_of_y or (lambda y: float(y))
+    x0, x1 = ax.get_xlim(); y0, y1 = ax.get_ylim()
+    halo = [_pe.withStroke(linewidth=2.0, foreground="white")]
+    kw = dict(fontsize=fs, color=color, zorder=12, clip_on=False)
+    out = []
+    if bottom:
+        lons = list(range(-180, 181, 30)) if lons is None else lons
+        lat_b = lat_of_y(y0)
+        xb = blended_transform_factory(ax.transData, ax.transAxes)
+        dy = pad if lon_inside else -pad
+        tr = offset_copy(xb, fig=fig, x=0, y=dy, units="points")
+        seen = set()
+        for lo in lons:
+            if lo in skip_lons:
+                continue
+            x = float(np.asarray(project([lo], [lat_b])[0]).ravel()[0])
+            if not np.isfinite(x):
+                continue
+            m = x_margin * (x1 - x0)
+            if not (x0 + m <= x <= x1 - m):
+                continue
+            lab = fmt_lon(lo, 0)
+            if lab in seen:
+                continue
+            seen.add(lab)
+            out.append(ax.text(x, 0.0, lab, transform=tr, ha="center",
+                               va="bottom" if lon_inside else "top",
+                               path_effects=halo if lon_inside else None,
+                               **kw))
+    if lat_side:
+        yb = blended_transform_factory(ax.transAxes, ax.transData)
+        left = lat_side == "left"
+        if lat_inside:
+            dx, ha = (pad, "left") if left else (-pad, "right")
+        else:
+            dx, ha = (-pad, "right") if left else (pad, "left")
+        tr = offset_copy(yb, fig=fig, x=dx, y=0, units="points")
+        for la in lats:
+            y = float(np.asarray(project([0.0], [la])[1]).ravel()[0])
+            if not (y0 <= y <= y1):
+                continue
+            va = "bottom" if lat_inside else "center"
+            if lat_inside and lat_va == "outward" and la < -1:
+                va = "top"
+            lab = fmt_lat(round(la, nd_lat), nd_lat) if abs(la) > 1e-9 else "0\u00b0"
+            out.append(ax.text(0.0 if left else 1.0, y + lat_offset, lab,
+                               transform=tr, ha=ha, va=va,
+                               path_effects=halo if lat_inside else None,
+                               **kw))
+    return out
+
+
+def robinson_degree_labels(ax, **kw):
+    import tropics_robinson as rb
+
+    def lat_of_y(y):
+        lo, hi = -89.0, 89.0
+        for _ in range(60):
+            m = 0.5 * (lo + hi)
+            if float(rb.lat_to_y(m)) < y:
+                lo = m
+            else:
+                hi = m
+        return max(min(0.5 * (lo + hi), rb.LAT_LIM[1]), rb.LAT_LIM[0])
+    return band_degree_labels(ax, project=rb.project, lat_of_y=lat_of_y, **kw)
+
+
 def save(fig, name, fig_dir=None):
+    if st.held(fig):
+        return fig
     from tropics_config import FIG_DIR
     d = fig_dir or FIG_DIR
     d.mkdir(parents=True, exist_ok=True)

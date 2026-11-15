@@ -1,4 +1,4 @@
-"""A third of the world's threatened land vertebrates exposed to tropical urbanization
+"""The geography of threatened species exposure to tropical urban growth
 
 Author: Rakibul Ahasan
 """
@@ -437,12 +437,11 @@ def s18():
 
 def s19():
     d = pd.read_csv(TABLE_DIR / "species_boundary_shares.csv")
-    d = d.sort_values("share_published", ascending=False).reset_index(drop=True)
+    d = d.sort_values("share_centroid", ascending=False).reset_index(drop=True)
     out = pd.DataFrame({
         "Species": d.sci,
         "Category": d.category,
         "Global range (km²)": [fk(v) for v in d.range_km2],
-        "Published share": [pct(v, 1) for v in d.share_published],
         "Cell wholly inside": [pct(v, 1) for v in d.share_within],
         "Cell centre inside": [pct(v, 1) for v in d.share_centroid],
         "Range touches cell": [pct(v, 1) for v in d.share_touches],

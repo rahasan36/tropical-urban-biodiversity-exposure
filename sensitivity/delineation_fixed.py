@@ -1,4 +1,4 @@
-"""A third of the world's threatened land vertebrates exposed to tropical urbanization
+"""The geography of threatened species exposure to tropical urban growth
 
 Author: Rakibul Ahasan
 """
@@ -64,21 +64,26 @@ def pairs_for(i, cells, cities, sp, part_sp):
                                           conv_km2=z["pair_conv"]))
                 setting = pd.DataFrame(dict(sp_i=z["set_sp"],
                                             city_id=z["set_city"]))
+                match = match and "pool_sp" in z.files
+                pool = z["pool_sp"] if "pool_sp" in z.files else None
         if match:
-            return pairs, setting, "cache"
+            return pairs, setting, pool, "cache"
         print(f"  stored pairs for config {i} do not match this delineation; "
               "recomputing", flush=True)
-    sp2, pairs, setting = tsen.cost_from_cache(cells, cities, sp, part_sp)
+    sp2, pairs, setting, pool = tsen.cost_from_cache(cells, cities, sp, part_sp,
+                                                     with_pool=True)
     np.savez_compressed(
         p, cache_fp=fp, city_ids=cities.city_id.to_numpy(),
         pair_sp=pairs.sp_i.to_numpy(), pair_city=pairs.city_id.to_numpy(),
         pair_conv=pairs.conv_km2.to_numpy(),
-        set_sp=setting.sp_i.to_numpy(), set_city=setting.city_id.to_numpy())
-    return pairs, setting, "computed"
+        set_sp=setting.sp_i.to_numpy(), set_city=setting.city_id.to_numpy(),
+        pool_sp=pool)
+    return pairs, setting, pool, "computed"
 
 
-def fit_at(cities, sp, pairs, setting, threshold):
-    t, thr, own = tsen.assemble(cities, sp, pairs, setting, threshold=threshold)
+def fit_at(cities, sp, pairs, setting, threshold, pool=None):
+    t, thr, own = tsen.assemble(cities, sp, pairs, setting, threshold=threshold,
+                                pool=pool)
     t = tsen.attach_groups(t)
     r = ts.fit_scaling(t, response="cost_per_km2", size="urban_km2_base",
                        setting="setting_richness", spatial=True)
@@ -88,13 +93,13 @@ def fit_at(cities, sp, pairs, setting, threshold):
 def run_config(i, fixed_threshold, sp, part_sp, cells0):
     t0 = time.time()
     cfg, cells, cities = config_tables(i, cells0)
-    pairs, setting, src = pairs_for(i, cells, cities, sp, part_sp)
+    pairs, setting, pool, src = pairs_for(i, cells, cities, sp, part_sp)
     rows = []
     passes = [("own quartile", None)]
     if fixed_threshold is not None:
         passes.append(("fixed", fixed_threshold))
     for how, thr_in in passes:
-        t, thr, own, r = fit_at(cities, sp, pairs, setting, thr_in)
+        t, thr, own, r = fit_at(cities, sp, pairs, setting, thr_in, pool)
         rows.append(dict(
             config=cfg["label"], threshold_rule=how, fraction=cfg["fraction"],
             link=cfg["link"], floor=cfg["floor"], n_cities=int(len(t)),

@@ -2,91 +2,91 @@
  "strata": [
   {
    "stratum": 1,
-   "range_lo": 1.2393915747081408,
-   "range_hi": 816.0550443872943,
-   "n": 791,
+   "range_lo": 0.8942576556092983,
+   "range_hi": 813.3376576374195,
+   "n": 793,
    "n_contrib_median": 1.0,
    "top1_median": 1.0,
    "top3_median": 1.0,
-   "rho": -0.0640865031868138,
-   "p": 0.0716372153891376
+   "rho": -0.06157559497189582,
+   "p": 0.08311454107331115
   },
   {
    "stratum": 2,
-   "range_lo": 820.4170319470493,
-   "range_hi": 2601.537637550024,
-   "n": 790,
+   "range_lo": 816.0550443872943,
+   "range_hi": 2598.911809553956,
+   "n": 792,
    "n_contrib_median": 1.0,
    "top1_median": 1.0,
    "top3_median": 1.0,
-   "rho": -0.3699799744227046,
-   "p": 4.9314968338101665e-27
+   "rho": -0.3710493970550256,
+   "p": 2.949142853411455e-27
   },
   {
    "stratum": 3,
-   "range_lo": 2604.6688860911154,
-   "range_hi": 5297.690844931956,
-   "n": 790,
+   "range_lo": 2600.991236417267,
+   "range_hi": 5296.169127023004,
+   "n": 792,
    "n_contrib_median": 2.0,
-   "top1_median": 0.8802925748502094,
+   "top1_median": 0.8808057873212624,
    "top3_median": 1.0,
-   "rho": -0.4802195944965583,
-   "p": 8.16260525954584e-47
+   "rho": -0.47788648042924387,
+   "p": 1.9824712643608246e-46
   },
   {
    "stratum": 4,
-   "range_lo": 5305.0334746348,
-   "range_hi": 47439.345909601536,
-   "n": 790,
+   "range_lo": 5297.690844931956,
+   "range_hi": 47670.6391726317,
+   "n": 792,
    "n_contrib_median": 4.0,
-   "top1_median": 0.6852567025330193,
-   "top3_median": 0.9871320066488374,
-   "rho": -0.4028719360814203,
-   "p": 3.4775277294369e-32
+   "top1_median": 0.6846505319945744,
+   "top3_median": 0.9866618906396745,
+   "rho": -0.401580044854088,
+   "p": 4.76298842650722e-32
   },
   {
    "stratum": 5,
-   "range_lo": 47670.6391726317,
+   "range_lo": 47675.751614904846,
    "range_hi": 307329877.1342944,
-   "n": 791,
+   "n": 792,
    "n_contrib_median": 50.0,
-   "top1_median": 0.2704383143969536,
-   "top3_median": 0.5164899262563958,
-   "rho": -0.18969597359966447,
-   "p": 7.633157902959855e-08
+   "top1_median": 0.27052307185131813,
+   "top3_median": 0.5183008308784056,
+   "rho": -0.20002789467681167,
+   "p": 1.3638161247080546e-08
   }
  ],
  "bands": [
   {
    "band": "all",
-   "n": 3952,
+   "n": 3961,
    "n_contrib_median": 2.0,
-   "top1_median": 0.8283348319224573,
+   "top1_median": 0.828488571291375,
    "top3_median": 1.0,
-   "share_top1_gt50": 0.749746963562753,
-   "range_median": 3876.8277728557287
+   "share_top1_gt50": 0.7490532693764201,
+   "range_median": 3869.6062751473487
   },
   {
    "band": ">=0.1%",
-   "n": 2377,
+   "n": 2383,
    "n_contrib_median": 3.0,
-   "top1_median": 0.7985071068891858,
+   "top1_median": 0.8019571188436218,
    "top3_median": 1.0,
-   "share_top1_gt50": 0.7526293647454775,
-   "range_median": 2667.4522748295103
+   "share_top1_gt50": 0.751573646663869,
+   "range_median": 2664.9744731583974
   },
   {
    "band": ">=1%",
-   "n": 601,
+   "n": 605,
    "n_contrib_median": 2.0,
-   "top1_median": 0.9949265445213924,
+   "top1_median": 0.9977022103899346,
    "top3_median": 1.0,
-   "share_top1_gt50": 0.9284525790349417,
-   "range_median": 553.4502887237448
+   "share_top1_gt50": 0.9289256198347108,
+   "range_median": 533.1362147105779
   },
   {
    "band": ">=5%",
-   "n": 134,
+   "n": 136,
    "n_contrib_median": 1.0,
    "top1_median": 1.0,
    "top3_median": 1.0,
@@ -97,7 +97,7 @@
  "taxa": [
   {
    "taxon": "AMPHIBIA",
-   "n": 947,
+   "n": 951,
    "range_median": 2208.5292587051567,
    "n_contrib_median": 1.0,
    "top1_median": 1.0,
@@ -105,55 +105,55 @@
   },
   {
    "taxon": "AVES",
-   "n": 838,
-   "range_median": 18359.939223752102,
+   "n": 839,
+   "range_median": 18563.545061230136,
    "n_contrib_median": 5.0,
-   "top1_median": 0.5918758582850152,
-   "top3_median": 0.9446638258837802
+   "top1_median": 0.5907944505688281,
+   "top3_median": 0.9455806234500237
   },
   {
    "taxon": "MAMMALIA",
-   "n": 774,
-   "range_median": 20871.588549024265,
-   "n_contrib_median": 5.5,
-   "top1_median": 0.5642385670989251,
-   "top3_median": 0.9182710600327693
+   "n": 773,
+   "range_median": 21090.400415857894,
+   "n_contrib_median": 6.0,
+   "top1_median": 0.5605488663545665,
+   "top3_median": 0.9172913477816056
   },
   {
    "taxon": "REPTILIA",
-   "n": 1393,
-   "range_median": 2147.8682621392545,
+   "n": 1398,
+   "range_median": 2138.0933821272556,
    "n_contrib_median": 2.0,
-   "top1_median": 0.9411450662311764,
+   "top1_median": 0.944437542983684,
    "top3_median": 1.0
   }
  ],
  "rule_sensitivity": [
   {
    "band": ">=1%",
-   "centroid": 601,
-   "within": 501,
-   "touches": 693,
-   "all_three": 501,
-   "any_rule": 693,
+   "centroid": 605,
+   "within": 505,
+   "touches": 694,
+   "all_three": 505,
+   "any_rule": 694,
    "stable_n_contrib_median": 2.0,
-   "stable_top1_median": 0.9838181658874182,
-   "stable_share_top1_gt50": 0.9301397205588823
+   "stable_top1_median": 0.9848738026045932,
+   "stable_share_top1_gt50": 0.9306930693069307
   },
   {
    "band": ">=5%",
-   "centroid": 134,
-   "within": 92,
-   "touches": 188,
-   "all_three": 92,
-   "any_rule": 188,
+   "centroid": 136,
+   "within": 93,
+   "touches": 191,
+   "all_three": 93,
+   "any_rule": 191,
    "stable_n_contrib_median": 1.0,
    "stable_top1_median": 1.0,
    "stable_share_top1_gt50": 1.0
   }
  ],
  "rho_unstratified": [
-  0.010078287881357863,
-  0.526481234344323
+  0.010322206125612628,
+  0.5160439778411807
  ]
 }

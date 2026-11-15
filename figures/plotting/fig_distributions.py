@@ -1,4 +1,4 @@
-"""A third of the world's threatened land vertebrates exposed to tropical urbanization
+"""The geography of threatened species exposure to tropical urban growth
 
 Author: Rakibul Ahasan
 """
@@ -13,7 +13,7 @@ import tropics_style as st
 import tropics_panels as tp
 import tropics_main_figures as f4
 
-SIZE_C, GROW_C, SET_C = "#5F7391", "#C98A18", "#2E6F5B"
+SIZE_C, GROW_C, SET_C = "#5F7391", "#C98A18", "#7651A5"
 RED = "#C8102E"
 HEX = LinearSegmentedColormap.from_list("hex", mpl.colormaps["Blues"](np.linspace(0.22, 1.0, 256)))
 PLAIN = FuncFormatter(lambda v, _: f"{v:,.3f}".rstrip("0").rstrip("."))
@@ -74,7 +74,7 @@ def shapley(ax):
     ax.set_xlabel("Share of the variance in log\nexposure intensity (%)")
     ax.tick_params(axis="y", length=0)
     st.despine(ax, keep=("bottom",))
-    ax.text(0.98, 0.02, f"Shapley shares sum to the\nmodel R$^2$ of {sh['full_R2']:.2f}", transform=ax.transAxes,
+    ax.text(0.98, 0.02, f"Shapley shares sum to the\nmodel $R^2$ of {sh['full_R2']:.2f}", transform=ax.transAxes,
             ha="right", va="bottom", fontsize=st.MIN_PT, color=st.INK)
 
 
