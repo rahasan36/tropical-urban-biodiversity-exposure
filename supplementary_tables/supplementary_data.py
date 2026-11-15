@@ -85,7 +85,9 @@ TEMPORAL_TEXT = {
     "agglomeration_deepening_summary": "Summary statistics of Fig. 4c",
     "disagreement_check": "Species reached and above 1 percent under each treatment of disputed early land (Supplementary Note 2)",
     "temporal_fits": "Size exponent and setting coefficient of the primary specification fitted separately in each five-year period and over 2000 to 2020, with the Shapley shares of size and setting in the variance of log exposure intensity",
-    "band_totals": "Impervious surface in the tropical band and the share added inside agglomerations (Supplementary Note 1)",
+    "band_totals": "Impervious surface in the tropical band, the share added inside agglomerations, and the addition outside agglomerations by the 2020 built-up fraction of its 30 arcsecond cell (Supplementary Note 1)",
+    "outside_species": "Species of concern, threatened and narrow-range species, and threatened species by class, reached and converted by impervious surface added inside and outside the delineated agglomerations, 2000 to 2020",
+    "outside_builtup": "Impervious surface added outside the agglomerations, the range of species of concern it converted and the range converted per km2 added, by the 2020 built-up fraction of its 30 arcsecond cell",
 }
 
 CHECK_FILES = {"Checks_setting_buffer.csv": "setting_radius.csv",
@@ -439,8 +441,47 @@ def band_totals():
             dict(quantity="impervious surface in the tropical band, 2020 (km2)", value=b["impervious_2020_km2"]),
             dict(quantity="impervious surface added, 2000 to 2020 (km2)", value=b["added_2000_2020_km2"]),
             dict(quantity="share of the addition inside delineated agglomerations (%)",
-                 value=b["added_inside_agglomerations_pct"])]
+                 value=b["added_inside_agglomerations_pct"]),
+            dict(quantity="impervious surface added outside delineated agglomerations, 2000 to 2020 (km2)",
+                 value=b["added_outside_agglomerations_km2"])]
+    labels = {"below_0.05": "below 0.05", "0.05_to_0.10": "0.05 to 0.10", "0.10_to_0.20": "0.10 to 0.20",
+              "0.20_or_more": "0.20 or more (clusters below 5 km2)"}
+    for k, lab in labels.items():
+        v = b["added_outside_by_2020_builtup_fraction"][k]
+        rows.append(dict(quantity=f"added outside agglomerations in cells with 2020 built-up fraction {lab} (km2)",
+                         value=v["km2"]))
+        rows.append(dict(quantity=f"added outside agglomerations in cells with 2020 built-up fraction {lab} (% of outside)",
+                         value=v["pct_of_outside"]))
     return pd.DataFrame(rows)
+
+
+def outside_tables():
+    o = json.loads((TABLE_DIR / "outside_agglomerations.json").read_text())
+    groups = [("species of concern", o["species_of_concern"]), ("threatened", o["threatened"]),
+              ("narrow-range", o["narrow_range"])]
+    groups += [(f"threatened {k.lower()}", v) for k, v in o["threatened_by_taxon"].items()]
+    names = {"species": "species with range in the tropical band", "reached_inside": "reached inside agglomerations",
+             "reached_outside": "reached outside agglomerations", "reached_either": "reached inside or outside",
+             "reached_outside_only": "reached only outside agglomerations",
+             "above_1pct_inside": "at least 1 percent of range converted inside agglomerations",
+             "above_1pct_either": "at least 1 percent of range converted inside and outside together",
+             "converted_inside_km2": "range converted inside agglomerations (km2)",
+             "converted_outside_km2": "range converted outside agglomerations (km2)",
+             "median_outside_km2_outside_only": "median range converted per species reached only outside agglomerations (km2)"}
+    sp = pd.DataFrame([dict(group=g, **{names[k]: v[k] for k in names}) for g, v in groups])
+    bu = pd.DataFrame([dict(built_up_fraction_2020=c, land_added_km2=o["land_added_outside_by_class_km2"][c],
+                            range_converted_km2=o["converted_outside_by_class_km2"][c],
+                            range_converted_per_km2_added=o["intensity_outside_by_class"][c])
+                       for c in o["land_added_outside_by_class_km2"]])
+    bu = pd.concat([bu, pd.DataFrame([dict(built_up_fraction_2020="all outside agglomerations",
+                                           land_added_km2=o["land_added_outside_km2"],
+                                           range_converted_km2=o["species_of_concern"]["converted_outside_km2"],
+                                           range_converted_per_km2_added=o["intensity_outside"]),
+                                      dict(built_up_fraction_2020="inside agglomerations",
+                                           land_added_km2=o["land_added_inside_km2"],
+                                           range_converted_km2=o["species_of_concern"]["converted_inside_km2"],
+                                           range_converted_per_km2_added=o["intensity_inside"])])], ignore_index=True)
+    return sp, bu
 
 
 def write_book(path, sheets, readme):
@@ -459,6 +500,8 @@ def build(out=OUT):
     out.mkdir(parents=True, exist_ok=True)
     temporal = [(f.split(".")[0], pd.read_csv(T / f)) for f in TEMPORAL_FILES]
     temporal.append(("band_totals", band_totals()))
+    sp_out, bu_out = outside_tables()
+    temporal += [("outside_species", sp_out), ("outside_builtup", bu_out)]
     temporal.insert(1, ("temporal_fits", temporal_fits()))
     write_book(out / "Supplementary_Data_3.xlsx", temporal, [(n, TEMPORAL_TEXT[n]) for n, _ in temporal])
     d = tn.table()[CITY_COLUMNS].sort_values("city_id")

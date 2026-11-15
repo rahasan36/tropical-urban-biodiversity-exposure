@@ -99,6 +99,7 @@ ANALYSIS = [
     ("region_search", []),
     ("tropics_numbers", "m.run(); m.export_fig_tables()"),
     ("recency_numbers", []),
+    ("outside_agglomerations", ["run"]),
 ]
 
 TABLES = [
